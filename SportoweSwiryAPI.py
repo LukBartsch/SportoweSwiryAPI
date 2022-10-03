@@ -4,4 +4,4 @@ app=create_app()
 
 @app.route("/")
 def index():
-    return "Hello from flask!"
+    return "Hello from REST API for Sportowe Świry!"
