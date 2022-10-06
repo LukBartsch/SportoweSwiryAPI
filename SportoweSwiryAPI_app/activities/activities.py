@@ -1,6 +1,9 @@
 from flask import jsonify
-from SportoweSwiryAPI_app.models import User, Activities, ActivitySchema, CoefficientsList, CoefficientsListSchema
-from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required
+from webargs.flaskparser import use_args
+import datetime
+from SportoweSwiryAPI_app import db
+from SportoweSwiryAPI_app.models import User, Activities, ActivitySchema, CoefficientsList, CoefficientsListSchema, activity_schema
+from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type
 from SportoweSwiryAPI_app.activities import activities_bp
 
 @activities_bp.route('/activities', methods=['GET'])
@@ -48,3 +51,19 @@ def get_types_of_activities(user_id: str):
     })
 
 
+@activities_bp.route('/activities', methods=['POST'])
+@token_required
+@validate_json_content_type
+@use_args(activity_schema, error_status_code=400)
+def add_activity(user_id: str, args: dict):
+
+        
+    new_activity=Activities(date=args['date'], activity=args['activity'], distance=args['distance'], userName=user_id)
+
+    db.session.add(new_activity)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': activity_schema.dump(new_activity),
+    }), 201
