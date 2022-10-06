@@ -1,3 +1,4 @@
+from email.policy import default
 from importlib.metadata import requires
 import jwt
 
@@ -108,7 +109,7 @@ class Activities(db.Model):
     date = db.Column(db.Date, nullable=False)
     activity = db.Column(db.String(50), nullable=False)
     distance = db.Column(db.Float, nullable=False)
-    time = db.Column(db.Time)
+    time = db.Column(db.Time, default=datetime.utcnow())
     userName = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
     stravaID = db.Column(db.BigInteger)
 
@@ -127,7 +128,7 @@ class ActivitySchema(Schema):
     activity = fields.String(required=True)
     distance = fields.Decimal(required=True)
     time = fields.Time('%H:%M:%S')
-    userName = fields.String(required=True)
+    userName = fields.String(dump_only=True)
     stravaID = fields.Integer()
 
     @validates('date')
@@ -138,10 +139,10 @@ class ActivitySchema(Schema):
     @validates('activity')
     def validate_activity_exist(self, value):
         available_activity_types = CoefficientsList.query.all()
-        available_activity_types = [(a.activity_name) for a in available_activity_types]
+        available_activity_types = [(a.activityName) for a in available_activity_types]
         available_activity_types = list(dict.fromkeys(available_activity_types))
 
-        if value in available_activity_types:
+        if value not in available_activity_types:
             raise ValidationError(f'This type of activity ({value}) is not available in the application.')
 
 
@@ -154,3 +155,4 @@ class CoefficientsListSchema(Schema):
 
 user_schema = UserSchema()
 update_password_user_schema = UpdatePasswordUserSchema()
+activity_schema = ActivitySchema()
