@@ -19,7 +19,7 @@ class User(db.Model):
     isAddedByGoogle = db.Column(db.Boolean, default=False)
     isAddedByFb = db.Column(db.Boolean, default=False)
 
-    activities = db.relationship('Activity', backref='user', lazy='dynamic')
+    activities = db.relationship('Activities', backref='user', lazy='dynamic')
 
     # event_admin = db.relationship('Event', backref='admin', lazy='dynamic')
     # events = db.relationship('Participation', backref='user', lazy='dynamic')
@@ -93,15 +93,23 @@ class UpdatePasswordUserSchema(Schema):
     new_password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
 
 
-class Activity(db.Model):
+class Activities(db.Model):
     __tableName__ = 'activitiesAPI'
+    # id = db.Column(db.Integer, primary_key=True)
+    # user_id = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
+    # activity = db.Column(db.String(50), nullable=False)
+    # date = db.Column(db.Date, nullable=False)
+    # distance = db.Column(db.Float, nullable=False)
+    # time = db.Column(db.Time)
+    # strava_id = db.Column(db.BigInteger)
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
-    activity_type = db.Column(db.Integer, db.ForeignKey('sport.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
+    activity = db.Column(db.String(50), nullable=False)
     distance = db.Column(db.Float, nullable=False)
-    time = db.Column(db.Integer, nullable=False, default=0)
-    strava_id = db.Column(db.BigInteger)
+    time = db.Column(db.Time)
+    userName = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
+    stravaID = db.Column(db.BigInteger)
 
 class CoefficientsList(db.Model):
     __tableName__ = 'coefficientsListAPI'
@@ -110,6 +118,31 @@ class CoefficientsList(db.Model):
     activity_name = db.Column(db.String(50))
     value = db.Column(db.Float)
     constant = db.Column(db.Boolean)
+
+class ActivitySchema(Schema):
+    id = fields.Integer(dump_only=True)
+    date = fields.Date('%d-%m-%Y', required=True)
+    activity = fields.String(required=True)
+    distance = fields.Decimal(required=True)
+    time = fields.Time('%H:%M:%S')
+    userName = fields.String(required=True)
+    stravaID = fields.Integer()
+
+    @validates('date')
+    def validate_date(self, value):
+        if value > datetime.now().date():
+            raise ValidationError(f'Birth date must be lower than {datetime.now().date()}')
+
+    @validates('activity')
+    def validate_activity_exist(self, value):
+        available_activity_types = CoefficientsList.query.all()
+        available_activity_types = [(a.activity_name) for a in available_activity_types]
+        available_activity_types = list(dict.fromkeys(available_activity_types))
+
+        if value in available_activity_types:
+            raise ValidationError(f'This type of activity ({value}) is not available in the application.')
+
+
 
 
 user_schema = UserSchema()
