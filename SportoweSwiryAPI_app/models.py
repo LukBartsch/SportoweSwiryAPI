@@ -1,3 +1,4 @@
+from importlib.metadata import requires
 import jwt
 
 from flask import abort, current_app
@@ -84,9 +85,9 @@ class UserSchema(Schema):
     mail = fields.String(required=True, validate=validate.Length(max=50))
     password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
     isAdmin = fields.Boolean(dump_default=False)
-    confirmed = fields.Boolean(dump_defaultdefault=True)
-    isAddedByGoogle = fields.Boolean(dump_defaultdefault=False)
-    isAddedByFb = fields.Boolean(dump_defaultdefault=False)
+    confirmed = fields.Boolean(dump_default=True)
+    isAddedByGoogle = fields.Boolean(dump_default=False)
+    isAddedByFb = fields.Boolean(dump_defaultt=False)
 
 class UpdatePasswordUserSchema(Schema):
     current_password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
@@ -114,10 +115,11 @@ class Activities(db.Model):
 class CoefficientsList(db.Model):
     __tableName__ = 'coefficientsListAPI'
     id = db.Column(db.Integer, primary_key=True)
-    set_name = db.Column(db.String(50))
-    activity_name = db.Column(db.String(50))
+    setName = db.Column(db.String(50))
+    activityName = db.Column(db.String(50))
     value = db.Column(db.Float)
     constant = db.Column(db.Boolean)
+
 
 class ActivitySchema(Schema):
     id = fields.Integer(dump_only=True)
@@ -143,7 +145,12 @@ class ActivitySchema(Schema):
             raise ValidationError(f'This type of activity ({value}) is not available in the application.')
 
 
-
+class CoefficientsListSchema(Schema):
+    id = fields.Integer(dumpl_only=True, load_only=True)
+    setName = fields.String()
+    activityName = fields.String(required=True)
+    value = fields.Decimal(required=True)
+    constant = fields.Boolean(required=True)
 
 user_schema = UserSchema()
 update_password_user_schema = UpdatePasswordUserSchema()
