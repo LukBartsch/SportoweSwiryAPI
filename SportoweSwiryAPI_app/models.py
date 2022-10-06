@@ -19,9 +19,10 @@ class User(db.Model):
     isAddedByGoogle = db.Column(db.Boolean, default=False)
     isAddedByFb = db.Column(db.Boolean, default=False)
 
+    activities = db.relationship('Activity', backref='user', lazy='dynamic')
+
     # event_admin = db.relationship('Event', backref='admin', lazy='dynamic')
     # events = db.relationship('Participation', backref='user', lazy='dynamic')
-    # activities = db.relationship('Activities', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return f'<{self.__class__.__name__}>: {self.name} {self.lastName}'
@@ -90,6 +91,26 @@ class UserSchema(Schema):
 class UpdatePasswordUserSchema(Schema):
     current_password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
     new_password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
+
+
+class Activity(db.Model):
+    __tableName__ = 'activitiesAPI'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
+    activity_type = db.Column(db.Integer, db.ForeignKey('sport.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    distance = db.Column(db.Float, nullable=False)
+    time = db.Column(db.Integer, nullable=False, default=0)
+    strava_id = db.Column(db.BigInteger)
+
+class CoefficientsList(db.Model):
+    __tableName__ = 'coefficientsListAPI'
+    id = db.Column(db.Integer, primary_key=True)
+    set_name = db.Column(db.String(50))
+    activity_name = db.Column(db.String(50))
+    value = db.Column(db.Float)
+    constant = db.Column(db.Boolean)
+
 
 user_schema = UserSchema()
 update_password_user_schema = UpdatePasswordUserSchema()
