@@ -57,8 +57,13 @@ def get_types_of_activities(user_id: str):
 @use_args(activity_schema, error_status_code=400)
 def add_activity(user_id: str, args: dict):
 
-        
-    new_activity=Activities(date=args['date'], activity=args['activity'], distance=args['distance'], userName=user_id)
+    try:  
+        time=datetime.datetime.strptime(str(args['time']), '%H:%M:%S')
+    except:
+        time=datetime.time()
+
+    new_activity=Activities(date=args['date'], activity=args['activity'], distance=args['distance'], 
+                        time=time, userName=user_id)
 
     db.session.add(new_activity)
     db.session.commit()
@@ -67,3 +72,17 @@ def add_activity(user_id: str, args: dict):
         'success': True,
         'data': activity_schema.dump(new_activity),
     }), 201
+
+
+@activities_bp.route('/activities/<int:activity_id>', methods=['DELETE'])
+@token_required
+def delete_activity(user_id: int, activity_id: int):
+    activity = Activities.query.get_or_404(activity_id, description=f'Activity with id {activity_id} not found')
+
+    db.session.delete(activity)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': f'Activity with id {activity_id} has been deleted'
+    })

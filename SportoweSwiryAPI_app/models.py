@@ -109,7 +109,7 @@ class Activities(db.Model):
     date = db.Column(db.Date, nullable=False)
     activity = db.Column(db.String(50), nullable=False)
     distance = db.Column(db.Float, nullable=False)
-    time = db.Column(db.Time, default=datetime.utcnow())
+    time = db.Column(db.Time)
     userName = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
     stravaID = db.Column(db.BigInteger)
 
