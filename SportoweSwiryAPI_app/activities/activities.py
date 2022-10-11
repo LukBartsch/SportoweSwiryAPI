@@ -2,7 +2,7 @@ from flask import jsonify
 from webargs.flaskparser import use_args
 import datetime
 from SportoweSwiryAPI_app import db
-from SportoweSwiryAPI_app.models import User, Activities, ActivitySchema, CoefficientsList, CoefficientsListSchema, activity_schema
+from SportoweSwiryAPI_app.models import User, Activities, ActivitySchema, CoefficientsList, CoefficientsListSchema, Event, EventSchema, activity_schema
 from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type
 from SportoweSwiryAPI_app.activities import activities_bp
 
@@ -85,4 +85,24 @@ def delete_activity(user_id: int, activity_id: int):
     return jsonify({
         'success': True,
         'data': f'Activity with id {activity_id} has been deleted'
+    })
+
+
+@activities_bp.route('/events', methods=['GET'])
+@token_required
+def get_events(user_id: str):
+
+    
+    query = Event.query
+    schema_args = get_schema_args(Event)
+    query = apply_order(Event, query)
+    query = apply_filter(Event, query)
+    items, pagination = get_pagination(query, 'activities.get_events')
+    events=EventSchema(**schema_args).dump(items)
+
+    return jsonify({
+        'success': True,
+        'data': events,
+        'number_of_records': len(events),
+        'pagination': pagination
     })

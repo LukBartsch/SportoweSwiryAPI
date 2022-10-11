@@ -153,6 +153,38 @@ class CoefficientsListSchema(Schema):
     value = fields.Decimal(required=True)
     constant = fields.Boolean(required=True)
 
+
+
+class Event(db.Model):
+    __tableName__ = 'eventsAPI'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50),nullable=False)
+    start = db.Column(db.Date,nullable=False)
+    lengthWeeks = db.Column(db.Integer,nullable=False)
+    end = db.Column(db.Date)
+    adminID = db.Column(db.String(50), db.ForeignKey(User.id)) 
+    status = db.Column(db.String(50), nullable=False)
+    isPrivate = db.Column(db.Boolean, nullable=False)
+    isSecret = db.Column(db.Boolean, nullable=False)
+    password = db.Column(db.String(50))
+    maxUserAmount = db.Column(db.Integer,nullable=False)
+    coefficientsSetName = db.Column(db.String(50))
+
+class EventSchema(Schema):
+    id = fields.Integer(dumpl_only=True)
+    name = fields.String(required=True)
+    start = fields.Date('%d-%m-%Y', required=True)
+    lengthWeeks = fields.Integer(required=True)
+    end = fields.Date('%d-%m-%Y')
+    adminID = fields.String(required=True) 
+    status = fields.String(required=True)
+    isPrivate = fields.Boolean(required=True)
+    isSecret = fields.Boolean(required=True)
+    password = fields.String()
+    maxUserAmount = fields.Integer(required=True)
+    coefficientsSetName = fields.String()
+
 user_schema = UserSchema()
 update_password_user_schema = UpdatePasswordUserSchema()
 activity_schema = ActivitySchema()
+event_schema = EventSchema()
