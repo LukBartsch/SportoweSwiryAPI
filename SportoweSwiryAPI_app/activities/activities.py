@@ -3,7 +3,7 @@ from webargs.flaskparser import use_args
 import datetime
 from SportoweSwiryAPI_app import db
 from SportoweSwiryAPI_app.models import User, Activities, ActivitySchema, CoefficientsList, CoefficientsListSchema, Event, EventSchema, Participation, activity_schema
-from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type
+from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type, filter_user_events
 from SportoweSwiryAPI_app.activities import activities_bp
 
 @activities_bp.route('/activities', methods=['GET'])
@@ -92,15 +92,31 @@ def delete_activity(user_id: int, activity_id: int):
 @token_required
 def get_my_events(user_id: str):
 
+    query = Event.query
+    schema_args = get_schema_args(Event)
+    query = filter_user_events(Participation, Event, query, user_id)
+    query = apply_order(Event, query)
+    query = apply_filter(Event, query)
+    items, pagination = get_pagination(query, 'activities.get_my_events')
+    events=EventSchema(**schema_args).dump(items)
 
-    participations = Participation.query.filter(Participation.user_name==user_id).all()
+    return jsonify({
+        'success': True,
+        'data': events,
+        'number_of_records': len(events),
+        'pagination': pagination
+    })
 
-    
+
+@activities_bp.route('/allevents', methods=['GET'])
+@token_required
+def get_all_events(user_id: str):
+
     query = Event.query
     schema_args = get_schema_args(Event)
     query = apply_order(Event, query)
     query = apply_filter(Event, query)
-    items, pagination = get_pagination(query, 'activities.get_my_events')
+    items, pagination = get_pagination(query, 'activities.get_all_events')
     events=EventSchema(**schema_args).dump(items)
 
     return jsonify({

@@ -169,7 +169,6 @@ class Event(db.Model):
     password = db.Column(db.String(50))
     maxUserAmount = db.Column(db.Integer,nullable=False)
     coefficientsSetName = db.Column(db.String(50))
-    participants = db.relationship('Participation', backref='Events', lazy='dynamic')
 
 class Participation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
