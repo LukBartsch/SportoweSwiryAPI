@@ -64,10 +64,14 @@ def apply_filter(model: DefaultMeta, query: BaseQuery) -> BaseQuery:
     return query
 
 def filter_user_events(model_participation: DefaultMeta, model_event: DefaultMeta, query: BaseQuery, user_id: str) -> BaseQuery:
-    participations = model_participation.query.filter(model_participation.user_name==user_id).all()
+    participations = model_participation.query.filter(model_participation.user_id==user_id).all()
     for participation in participations:
         query = query.filter(model_event.id == participation.event_id)
-    return query
+        print(participation.event_id)
+    if participations:
+        return query
+    else:
+        abort(404, description=f'You are not participating in any event.')
 
 def get_pagination(query: BaseQuery, func_name: str) -> Tuple[list, dict]:
     page = request.args.get('page', 1, type=int)
