@@ -23,7 +23,7 @@ def client(app):
 def user(client):
     user = {
         'name': 'test',
-        'lastName': 'Test',
+        'last_name': 'Test',
         'mail': 'test@wp.pl',
         'password': '12345678'
     }

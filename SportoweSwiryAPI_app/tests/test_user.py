@@ -4,7 +4,7 @@ def test_create_user(client):
     response = client.post('/api/v1/users',
                             json={
                                 'name': 'test',
-                                'lastName': 'Test',
+                                'last_name': 'Test',
                                 'mail': 'test@wp.pl',
                                 'password': '12345678'
                             })
@@ -17,10 +17,10 @@ def test_create_user(client):
 @pytest.mark.parametrize(
     'data,missing_field',
     [
-        ({'lastName': 'test', 'mail': 'test@wp.pl', 'password': '12345678'}, 'name'),
-        ({'name': 'test', 'mail': 'test@wp.pl', 'password': '12345678'}, 'lastName'),
-        ({'name': 'test', 'lastName': 'Test', 'password': '12345678'}, 'mail'),
-        ({'name': 'test', 'lastName': 'Test', 'mail': 'test@wp.pl'}, 'password')
+        ({'last_name': 'test', 'mail': 'test@wp.pl', 'password': '12345678'}, 'name'),
+        ({'name': 'test', 'mail': 'test@wp.pl', 'password': '12345678'}, 'last_name'),
+        ({'name': 'test', 'last_name': 'Test', 'password': '12345678'}, 'mail'),
+        ({'name': 'test', 'last_name': 'Test', 'mail': 'test@wp.pl'}, 'password')
     ]
 )
 def test_create_user_invalid_data(client, data, missing_field):
@@ -39,7 +39,7 @@ def test_create_user_invalid_content_type(client):
     response = client.post('/api/v1/users',
                             data={
                                 'name': 'test',
-                                'lastName': 'Test',
+                                'last_name': 'Test',
                                 'mail': 'test@wp.pl',
                                 'password': '12345678'
                             })
@@ -54,7 +54,7 @@ def test_create_user_already_used_mail(client, user):
     response = client.post('/api/v1/users',
                             json={
                                 'name': 'test',
-                                'lastName': 'Test',
+                                'last_name': 'Test',
                                 'mail': user['mail'],
                                 'password': '12345678'
                             })
@@ -102,7 +102,7 @@ def test_get_current_user(client, user, token):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is True
     assert response_data['name'] == user['name']
-    assert response_data['last_name'] == user['lastName']
+    assert response_data['last_name'] == user['last_name']
     assert response_data['mail'] == user['mail']
 
 

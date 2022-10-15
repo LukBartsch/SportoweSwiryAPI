@@ -13,35 +13,34 @@ class User(db.Model):
     __tableName__ = 'usersAPI'
     id = db.Column(db.String(50), unique=True, nullable=False , primary_key=True)
     name = db.Column(db.String(50))
-    lastName = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
     mail = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(500), nullable=False)
-    isAdmin = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
     confirmed = db.Column(db.Boolean, default=True)
-    isAddedByGoogle = db.Column(db.Boolean, default=False)
-    isAddedByFb = db.Column(db.Boolean, default=False)
+    is_added_by_google = db.Column(db.Boolean, default=False)
+    is_added_by_fb = db.Column(db.Boolean, default=False)
 
+    event_admin = db.relationship('Event', backref='admin', lazy='dynamic')
+    events = db.relationship('Participation', backref='user', lazy='dynamic')
     activities = db.relationship('Activities', backref='user', lazy='dynamic')
 
-    # event_admin = db.relationship('Event', backref='admin', lazy='dynamic')
-    # events = db.relationship('Participation', backref='user', lazy='dynamic')
-
     def __repr__(self):
-        return f'<{self.__class__.__name__}>: {self.name} {self.lastName}'
+        return f'<{self.__class__.__name__}>: {self.name} {self.last_name}'
 
 
     @staticmethod
-    def generate_ID(name: str, lastName: str) -> str:
+    def generate_ID(name: str, last_name: str) -> str:
 
         sufix = 0
 
-        id = name[0:3] + lastName[0:3] + str(sufix)
+        id = name[0:3] + last_name[0:3] + str(sufix)
         user=User.query.filter(User.id == id).first()
 
         while user != None:
             sufix +=1
             print(sufix)
-            id = name[0:3] + lastName[0:3] + str(sufix)
+            id = name[0:3] + last_name[0:3] + str(sufix)
             user=User.query.filter(User.id == id).first()
 
         return id
@@ -65,7 +64,7 @@ class User(db.Model):
         pwdhash = binascii.hexlify(pwdhash).decode('ascii')
         return pwdhash == stored_password
 
-    def removeAccents(self):
+    def remove_accents(self):
         strange='ŮôῡΒძěἊἦëĐᾇόἶἧзвŅῑἼźἓŉἐÿἈΌἢὶЁϋυŕŽŎŃğûλВὦėἜŤŨîᾪĝžἙâᾣÚκὔჯᾏᾢĠфĞὝŲŊŁČῐЙῤŌὭŏყἀхῦЧĎὍОуνἱῺèᾒῘᾘὨШūლἚύсÁóĒἍŷöὄЗὤἥბĔõὅῥŋБщἝξĢюᾫაπჟῸდΓÕűřἅгἰშΨńģὌΥÒᾬÏἴქὀῖὣᾙῶŠὟὁἵÖἕΕῨčᾈķЭτἻůᾕἫжΩᾶŇᾁἣჩαἄἹΖеУŹἃἠᾞåᾄГΠКíōĪὮϊὂᾱიżŦИὙἮὖÛĮἳφᾖἋΎΰῩŚἷРῈĲἁéὃσňİΙῠΚĸὛΪᾝᾯψÄᾭêὠÀღЫĩĈμΆᾌἨÑἑïოĵÃŒŸζჭᾼőΣŻçųøΤΑËņĭῙŘАдὗპŰἤცᾓήἯΐÎეὊὼΘЖᾜὢĚἩħĂыῳὧďТΗἺĬὰὡὬὫÇЩᾧñῢĻᾅÆßшδòÂчῌᾃΉᾑΦÍīМƒÜἒĴἿťᾴĶÊΊȘῃΟúχΔὋŴćŔῴῆЦЮΝΛῪŢὯнῬũãáἽĕᾗნᾳἆᾥйᾡὒსᾎĆрĀüСὕÅýფᾺῲšŵкἎἇὑЛვёἂΏθĘэᾋΧĉᾐĤὐὴιăąäὺÈФĺῇἘſგŜæῼῄĊἏØÉПяწДĿᾮἭĜХῂᾦωთĦлðὩზკίᾂᾆἪпἸиᾠώᾀŪāоÙἉἾρаđἌΞļÔβĖÝᾔĨНŀęᾤÓцЕĽŞὈÞუтΈέıàᾍἛśìŶŬȚĳῧῊᾟάεŖᾨᾉςΡმᾊᾸįᾚὥηᾛġÐὓłγľмþᾹἲἔбċῗჰხοἬŗŐἡὲῷῚΫŭᾩὸùᾷĹēრЯĄὉὪῒᾲΜᾰÌœĥტ'
         ascii_replacements='UoyBdeAieDaoiiZVNiIzeneyAOiiEyyrZONgulVoeETUiOgzEaoUkyjAoGFGYUNLCiIrOOoqaKyCDOOUniOeiIIOSulEySAoEAyooZoibEoornBSEkGYOapzOdGOuraGisPngOYOOIikoioIoSYoiOeEYcAkEtIuiIZOaNaicaaIZEUZaiIaaGPKioIOioaizTIYIyUIifiAYyYSiREIaeosnIIyKkYIIOpAOeoAgYiCmAAINeiojAOYzcAoSZcuoTAEniIRADypUitiiIiIeOoTZIoEIhAYoodTIIIaoOOCSonyKaAsSdoACIaIiFIiMfUeJItaKEISiOuxDOWcRoiTYNLYTONRuaaIeinaaoIoysACRAuSyAypAoswKAayLvEaOtEEAXciHyiiaaayEFliEsgSaOiCAOEPYtDKOIGKiootHLdOzkiaaIPIIooaUaOUAIrAdAKlObEYiINleoOTEKSOTuTEeiaAEsiYUTiyIIaeROAsRmAAiIoiIgDylglMtAieBcihkoIrOieoIYuOouaKerYAOOiaMaIoht'
         translator=str.maketrans(strange,ascii_replacements)
@@ -82,13 +81,13 @@ class User(db.Model):
 class UserSchema(Schema):
     id = fields.String(dump_only=True)
     name = fields.String(required=True, validate=validate.Length(max=50))
-    lastName = fields.String(required=True, validate=validate.Length(max=50))
+    last_name = fields.String(required=True, validate=validate.Length(max=50))
     mail = fields.String(required=True, validate=validate.Length(max=50))
     password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
-    isAdmin = fields.Boolean(dump_default=False)
+    is_admin = fields.Boolean(dump_default=False)
     confirmed = fields.Boolean(dump_default=True)
-    isAddedByGoogle = fields.Boolean(dump_default=False)
-    isAddedByFb = fields.Boolean(dump_defaultt=False)
+    is_added_by_google = fields.Boolean(dump_default=False)
+    is_added_by_fb = fields.Boolean(dump_defaultt=False)
 
 class UpdatePasswordUserSchema(Schema):
     current_password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
