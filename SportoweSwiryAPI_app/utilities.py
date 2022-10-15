@@ -67,7 +67,6 @@ def filter_user_events(model_participation: DefaultMeta, model_event: DefaultMet
     participations = model_participation.query.filter(model_participation.user_id==user_id).all()
     for participation in participations:
         query = query.filter(model_event.id == participation.event_id)
-        print(participation.event_id)
     if participations:
         return query
     else:

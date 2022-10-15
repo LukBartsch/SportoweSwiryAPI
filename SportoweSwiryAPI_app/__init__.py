@@ -14,10 +14,12 @@ def create_app(config_name='development'):
 
     from SportoweSwiryAPI_app.users import users_bp
     from SportoweSwiryAPI_app.activities import activities_bp
+    from SportoweSwiryAPI_app.events import events_bp
     from SportoweSwiryAPI_app.errors import errors_bp
     app.register_blueprint(errors_bp)
     app.register_blueprint(users_bp, url_prefix='/api/v1')
     app.register_blueprint(activities_bp, url_prefix='/api/v1')
+    app.register_blueprint(events_bp, url_prefix='/api/v1')
 
     return app
 

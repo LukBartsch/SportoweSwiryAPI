@@ -24,6 +24,10 @@ def bad_request_error(error):
 def unauthorized_error(error):
     return ErrorResponse(error.description, 401).to_response()
 
+@errors_bp.app_errorhandler(403)
+def unauthorized_error(error):
+    return ErrorResponse(error.description, 403).to_response()
+
 @errors_bp.app_errorhandler(404)
 def not_found_error(error):
     return ErrorResponse(error.description, 404).to_response()
