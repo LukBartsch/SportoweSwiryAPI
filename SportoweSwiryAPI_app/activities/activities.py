@@ -1,8 +1,8 @@
 from flask import jsonify
 from webargs.flaskparser import use_args
-import datetime
+import datetime as dt
 from SportoweSwiryAPI_app import db
-from SportoweSwiryAPI_app.models import User, Activities, ActivitySchema, CoefficientsList, CoefficientsListSchema, Event, EventSchema, Participation, activity_schema
+from SportoweSwiryAPI_app.models import User, Activities, ActivitySchema, Sport, SportSchema, Event, EventSchema, Participation, activity_schema
 from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type, filter_user_events
 from SportoweSwiryAPI_app.activities import activities_bp
 
@@ -10,15 +10,16 @@ from SportoweSwiryAPI_app.activities import activities_bp
 @token_required
 def get_activities(user_id: str):
 
-    user=User.query.get_or_404(user_id, description=f'Author with id (username): {user_id}  not found')
-    
-    query = Activities.query.filter(Activities.userName==user_id)
-
+    query = Activities.query.filter(Activities.user_id==user_id)
     schema_args = get_schema_args(Activities)
     query = apply_order(Activities, query)
     query = apply_filter(Activities, query)
     items, pagination = get_pagination(query, 'activities.get_activities')
     activities=ActivitySchema(**schema_args).dump(items)
+
+    for activity in activities:
+        activity['time'] = str(dt.timedelta(seconds = activity['time']))
+        activity['activity_name'] = Sport.give_sport_name(activity['activity_type_id'])
 
     return jsonify({
         'success': True,
@@ -31,17 +32,13 @@ def get_activities(user_id: str):
 @token_required
 def get_types_of_activities(user_id: str):
 	
-    # user=User.query.get_or_404(user_id, description=f'Author with id (username): {user_id}  not found')
-
-    set_name = "Podstawowy zestaw współczynników"
-
-    query = CoefficientsList.query.filter(CoefficientsList.setName==set_name)
-    schema_args = get_schema_args(CoefficientsList)
-    query = apply_order(CoefficientsList, query)
-    query = apply_filter(CoefficientsList, query)
+    query = Sport.query
+    schema_args = get_schema_args(Sport)
+    query = apply_order(Sport, query)
+    query = apply_filter(Sport, query)
     items, pagination = get_pagination(query, 'activities.get_types_of_activities')
 
-    types_of_activities = CoefficientsListSchema(**schema_args).dump(items)
+    types_of_activities = SportSchema(**schema_args).dump(items)
 
     return jsonify({
         'success': True,
@@ -57,20 +54,27 @@ def get_types_of_activities(user_id: str):
 @use_args(activity_schema, error_status_code=400)
 def add_activity(user_id: str, args: dict):
 
-    try:  
-        time=datetime.datetime.strptime(str(args['time']), '%H:%M:%S')
+    try:
+        time=(dt.datetime.strptime(str(args['time']), '%H:%M:%S'))
+        time_in_seconds = (time.hour * 60 + time.minute) * 60 + time.second
     except:
-        time=datetime.time()
+        time=dt.time()
+        time_in_seconds = (time.hour * 60 + time.minute) * 60 + time.second
 
-    new_activity=Activities(date=args['date'], activity=args['activity'], distance=args['distance'], 
-                        time=time, userName=user_id)
+    new_activity=Activities(user_id=user_id, activity_type_id = Sport.give_sport_id(args['activity_name']), 
+                    date=args['date'], distance=args['distance'], time=time_in_seconds)
 
     db.session.add(new_activity)
     db.session.commit()
 
+    schema_args = {'many': False}
+    activity=ActivitySchema(**schema_args).dump(new_activity)
+    activity['time'] = str(dt.timedelta(seconds = activity['time']))
+    activity['activity_name'] = args['activity_name']
+
     return jsonify({
         'success': True,
-        'data': activity_schema.dump(new_activity),
+        'data': activity,
     }), 201
 
 

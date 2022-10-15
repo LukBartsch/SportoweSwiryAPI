@@ -5,9 +5,10 @@ import jwt
 from flask import abort, current_app
 from datetime import datetime, timedelta
 from SportoweSwiryAPI_app import db
-from marshmallow import Schema, fields, validate, validates, ValidationError
+from marshmallow import Schema, fields, validate, validates, ValidationError, pre_load, post_load
 import hashlib
 import binascii
+import datetime as dt
 
 class User(db.Model):
     __tableName__ = 'usersAPI'
@@ -89,90 +90,116 @@ class UserSchema(Schema):
     is_added_by_google = fields.Boolean(dump_default=False)
     is_added_by_fb = fields.Boolean(dump_defaultt=False)
 
+
 class UpdatePasswordUserSchema(Schema):
     current_password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
     new_password = fields.String(load_only=True, required=True, validate=validate.Length(min=8, max=500))
 
 
+class Sport(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    default_coefficient = db.Column(db.Float, nullable = False, default = 0)
+    default_is_constant = db.Column(db.Boolean, nullable = False, default = False)
+    category = db.Column(db.String(50), nullable = False, default = 'Other')
+    activities = db.relationship('Activities', backref='activity_type', lazy='dynamic')
+    events = db.relationship('CoefficientsList', backref='sport', lazy='dynamic')
+
+    @staticmethod
+    def all_sports_list():
+        sports = Sport.query.all()
+        sport_types = [sport.name for sport in sports]
+        return sport_types
+
+    @staticmethod
+    def give_sport_id(sport_name):
+        sport = Sport.query.filter(Sport.name == sport_name).first()
+        sport_id = sport.id
+        return sport_id
+
+    @staticmethod
+    def give_sport_name(sport_id):
+        sport = Sport.query.filter(Sport.id == sport_id).first()
+        sport_name = sport.name
+        return sport_name
+
+class SportSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    name = fields.String(required=True)
+    default_coefficient = fields.Decimal(required=True)
+    default_is_constant = fields.Boolean(required=True)
+    category = fields.String(required=True)
+
+
 class Activities(db.Model):
     __tableName__ = 'activitiesAPI'
-    # id = db.Column(db.Integer, primary_key=True)
-    # user_id = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
-    # activity = db.Column(db.String(50), nullable=False)
-    # date = db.Column(db.Date, nullable=False)
-    # distance = db.Column(db.Float, nullable=False)
-    # time = db.Column(db.Time)
-    # strava_id = db.Column(db.BigInteger)
-
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
+    activity_type_id = db.Column(db.Integer, db.ForeignKey('sport.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    activity = db.Column(db.String(50), nullable=False)
     distance = db.Column(db.Float, nullable=False)
-    time = db.Column(db.Time)
-    userName = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
-    stravaID = db.Column(db.BigInteger)
-
-class CoefficientsList(db.Model):
-    __tableName__ = 'coefficientsListAPI'
-    id = db.Column(db.Integer, primary_key=True)
-    setName = db.Column(db.String(50))
-    activityName = db.Column(db.String(50))
-    value = db.Column(db.Float)
-    constant = db.Column(db.Boolean)
+    time = db.Column(db.Integer, nullable=False, default=0)
+    strava_id = db.Column(db.BigInteger)
 
 
 class ActivitySchema(Schema):
     id = fields.Integer(dump_only=True)
+    user_id = fields.String(dump_only=True)
+    activity_type_id = fields.Integer(required=True)
+    activity_name = fields.String(load_only=True)
     date = fields.Date('%d-%m-%Y', required=True)
-    activity = fields.String(required=True)
     distance = fields.Decimal(required=True)
-    time = fields.Time('%H:%M:%S')
-    userName = fields.String(dump_only=True)
-    stravaID = fields.Integer()
+    time = fields.Integer()
+    strava_id = fields.Integer()
 
     @validates('date')
     def validate_date(self, value):
         if value > datetime.now().date():
             raise ValidationError(f'Birth date must be lower than {datetime.now().date()}')
 
-    @validates('activity')
-    def validate_activity_exist(self, value):
-        available_activity_types = CoefficientsList.query.all()
-        available_activity_types = [(a.activityName) for a in available_activity_types]
-        available_activity_types = list(dict.fromkeys(available_activity_types))
 
+class ActivitySchemaAdd(ActivitySchema):
+    activity_type_id = fields.Integer()
+    activity_name = fields.String(required=True)
+    time = fields.Time('%H:%M:%S')
+
+    @validates('activity_name')
+    def validate_activity_exist(self, value):
+        available_activity_types = Sport.all_sports_list()
         if value not in available_activity_types:
             raise ValidationError(f'This type of activity ({value}) is not available in the application.')
-
-
-class CoefficientsListSchema(Schema):
-    id = fields.Integer(dumpl_only=True, load_only=True)
-    setName = fields.String()
-    activityName = fields.String(required=True)
-    value = fields.Decimal(required=True)
-    constant = fields.Boolean(required=True)
-
-
 
 class Event(db.Model):
     __tableName__ = 'eventsAPI'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50),nullable=False)
-    start = db.Column(db.Date,nullable=False)
-    lengthWeeks = db.Column(db.Integer,nullable=False)
-    end = db.Column(db.Date)
-    adminID = db.Column(db.String(50), db.ForeignKey(User.id)) 
+    name = db.Column(db.String(50), nullable=False)
+    start = db.Column(db.Date, nullable=False)
+    length_weeks = db.Column(db.Integer,nullable=False)
+    admin_id = db.Column(db.String(50), db.ForeignKey('user.id')) 
     status = db.Column(db.String(50), nullable=False)
-    isPrivate = db.Column(db.Boolean, nullable=False)
-    isSecret = db.Column(db.Boolean, nullable=False)
+    is_private = db.Column(db.Boolean, nullable=False)
+    is_secret = db.Column(db.Boolean, nullable=False)
     password = db.Column(db.String(50))
-    maxUserAmount = db.Column(db.Integer,nullable=False)
-    coefficientsSetName = db.Column(db.String(50))
+    max_user_amount = db.Column(db.Integer, nullable=False)
+
+    participants = db.relationship('Participation', backref='event', lazy='dynamic')
+    # distance_set = db.relationship('DistancesTable', backref='event', lazy='dynamic')
+    coefficients_list = db.relationship('CoefficientsList', backref='event', lazy='dynamic')
+
 
 class Participation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.String(50), db.ForeignKey('user.id'))
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
+    __tableName__ = 'participationAPI'
+    user_id = db.Column(db.String(50), db.ForeignKey('user.id'), primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), primary_key=True)
+
+
+class CoefficientsList(db.Model):
+    __tableName__ = 'coefficients_list_API'
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), primary_key=True)
+    activity_type_id = db.Column(db.Integer, db.ForeignKey('sport.id'), primary_key=True)
+    value = db.Column(db.Float, nullable = False, default = 0)
+    is_constant = db.Column(db.Boolean, nullable = False, default = False)
+
 
 class EventSchema(Schema):
     id = fields.Integer(dumpl_only=True)
@@ -190,5 +217,5 @@ class EventSchema(Schema):
 
 user_schema = UserSchema()
 update_password_user_schema = UpdatePasswordUserSchema()
-activity_schema = ActivitySchema()
+activity_schema = ActivitySchemaAdd()
 event_schema = EventSchema()
