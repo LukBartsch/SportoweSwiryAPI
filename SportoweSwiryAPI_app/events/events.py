@@ -64,3 +64,26 @@ def join_event(user_id: str, event_id: int):
         'success': True,
         'data': f'Congratulations. You signed up for event: {event.name}'
     })
+
+
+@events_bp.route("/leave_event/<int:event_id>")
+@token_required
+def leave_event(user_id: str, event_id: int):
+
+    event = Event.query.get_or_404(event_id, description=f'Event with id {event_id} not found')
+
+    is_participating = Participation.query.filter(Participation.user_id == user_id).filter(Participation.event_id == event_id).first()
+    if is_participating != None and event.status == "Zapisy otwarte":
+        participation = Participation.query.filter(Participation.event_id==event_id).filter(Participation.user_id == user_id).first()
+        db.session.delete(participation)
+        db.session.commit()
+
+    elif is_participating != None and event.status != "Zapisy otwarte":
+        abort(403, description=f'It is no longer possible to leave an event ({event.name}) at this time.')
+    elif is_participating == None:
+        abort(409, description=f'You are not participating in this event ({event.name}).')
+
+    return jsonify({
+        'success': True,
+        'data': f'You have been signed out of the event ({event.name})'
+    })
