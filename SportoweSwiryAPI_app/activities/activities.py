@@ -79,6 +79,39 @@ def add_activity(user_id: str, args: dict):
     }), 201
 
 
+@activities_bp.route('/activities/<int:activity_id>', methods=['PUT'])
+@token_required
+@validate_json_content_type
+@use_args(activity_schema, error_status_code=400)
+def update_activity(user_id: str, args: dict, activity_id: int):
+
+    activity = Activities.query.get_or_404(activity_id, description=f'Activity with id {activity_id} not found')
+
+    try:
+        time=(dt.datetime.strptime(str(args['time']), '%H:%M:%S'))
+        time_in_seconds = (time.hour * 60 + time.minute) * 60 + time.second
+    except:
+        time=dt.time()
+        time_in_seconds = (time.hour * 60 + time.minute) * 60 + time.second
+
+    activity.activity_type_id = Sport.give_sport_id(args['activity_name'])
+    activity.date=args['date']
+    activity.distance=args['distance']
+    activity.time=time_in_seconds
+
+    db.session.commit()
+
+    schema_args = {'many': False}
+    activity=ActivitySchema(**schema_args).dump(activity)
+    activity['time'] = str(dt.timedelta(seconds = activity['time']))
+    activity['activity_name'] = args['activity_name']
+
+    return jsonify({
+        'success': True,
+        'data': activity,
+    }), 201
+
+
 @activities_bp.route('/activities/<int:activity_id>', methods=['DELETE'])
 @token_required
 def delete_activity(user_id: int, activity_id: int):
