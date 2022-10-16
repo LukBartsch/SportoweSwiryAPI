@@ -3,7 +3,7 @@ from webargs.flaskparser import use_args
 import datetime as dt
 
 from SportoweSwiryAPI_app import db
-from SportoweSwiryAPI_app.models import Activities, ActivitySchema, Sport, SportSchema, activity_schema
+from SportoweSwiryAPI_app.models import Activities, ActivitySchema, Sport, SportSchema, User, SelectUserSchema, activity_schema
 from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type
 from SportoweSwiryAPI_app.activities import activities_bp
 
@@ -123,4 +123,33 @@ def delete_activity(user_id: int, activity_id: int):
     return jsonify({
         'success': True,
         'data': f'Activity with id {activity_id} has been deleted'
+    })
+
+
+
+@activities_bp.route('/user_activities', methods=['POST'])
+@token_required
+@validate_json_content_type
+@use_args(SelectUserSchema(only=['id', 'name', 'last_name']), error_status_code=400)
+def get_user_activities(user_id: str, args: dict):
+
+    selected_user_id = args['id']
+    user=User.query.get_or_404(selected_user_id, description=f'User with id (username): {selected_user_id}  not found')
+
+    query = Activities.query.filter(Activities.user_id==selected_user_id)
+    schema_args = get_schema_args(Activities)
+    query = apply_order(Activities, query)
+    query = apply_filter(Activities, query)
+    items, pagination = get_pagination(query, 'activities.get_user_activities')
+    activities=ActivitySchema(**schema_args).dump(items)
+
+    for activity in activities:
+        activity['time'] = str(dt.timedelta(seconds = activity['time']))
+        activity['activity_name'] = Sport.give_sport_name(activity['activity_type_id'])
+
+    return jsonify({
+        'success': True,
+        'data': activities,
+        'number_of_records': len(activities),
+        'pagination': pagination
     })
