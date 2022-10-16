@@ -1,15 +1,11 @@
-from email.policy import default
-from importlib.metadata import requires
-from unicodedata import name
 import jwt
 
 from flask import abort, current_app
 from datetime import datetime, timedelta
 from SportoweSwiryAPI_app import db
-from marshmallow import Schema, fields, validate, validates, ValidationError, pre_load, post_load
+from marshmallow import Schema, fields, validate, validates, ValidationError
 import hashlib
 import binascii
-import datetime as dt
 
 class User(db.Model):
     __tableName__ = 'usersAPI'
@@ -57,6 +53,7 @@ class User(db.Model):
         pwdhash = binascii.hexlify(pwdhash)
         return (salt + pwdhash).decode('ascii') 
 
+    @staticmethod
     def verify_password(stored_password, provided_password):
         """Verify a stored password against one provided by user"""
         salt = stored_password[:64]
@@ -79,6 +76,17 @@ class User(db.Model):
         }
         return jwt.encode(payload, current_app.config.get('SECRET_KEY'))
 
+    @staticmethod
+    def all_events(user_id):
+        participations = Participation.query.filter(Participation.user_id==user_id).all()
+        user_events_ids=[]
+
+        for participation in participations:
+            user_events_ids.append(participation.event_id)
+
+        user_events = Event.query.filter(Event.id.in_(user_events_ids))
+        return user_events
+
 
 class UserSchema(Schema):
     id = fields.String(dump_only=True)
@@ -90,6 +98,11 @@ class UserSchema(Schema):
     confirmed = fields.Boolean(dump_default=True)
     is_added_by_google = fields.Boolean(dump_default=False)
     is_added_by_fb = fields.Boolean(dump_defaultt=False)
+
+
+class LoginUserSchema(Schema):
+    mail = fields.String(required=True, validate=validate.Length(max=50))
+    password = fields.String(load_only=True, required=True, validate=validate.Length(max=500))
 
 
 class UpdatePasswordUserSchema(Schema):

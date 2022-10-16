@@ -2,17 +2,16 @@ from flask import jsonify, abort
 from webargs.flaskparser import use_args
 
 from SportoweSwiryAPI_app import db
-from SportoweSwiryAPI_app.models import Event, Participation, EventSchema, event_status_schema
-from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type, filter_user_events
+from SportoweSwiryAPI_app.models import User, Event, Participation, EventSchema, event_status_schema
+from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type
 from SportoweSwiryAPI_app.events import events_bp
 
 @events_bp.route('/events', methods=['GET'])
 @token_required
 def get_my_events(user_id: str):
 
-    query = Event.query
+    query = User.all_events(user_id)
     schema_args = get_schema_args(Event)
-    query = filter_user_events(Participation, Event, query, user_id)
     query = apply_order(Event, query)
     query = apply_filter(Event, query)
     items, pagination = get_pagination(query, 'events.get_my_events')

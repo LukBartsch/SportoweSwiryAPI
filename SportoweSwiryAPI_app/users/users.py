@@ -1,7 +1,7 @@
 from flask import jsonify, abort
 from webargs.flaskparser import use_args
 from SportoweSwiryAPI_app import db
-from SportoweSwiryAPI_app.models import User, UserSchema, user_schema, update_password_user_schema
+from SportoweSwiryAPI_app.models import User, UserSchema, LoginUserSchema, user_schema, update_password_user_schema
 from SportoweSwiryAPI_app.utilities import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination, token_required
 from SportoweSwiryAPI_app.users import users_bp
 
@@ -71,7 +71,7 @@ def create_user(args: dict):
 
 @users_bp.route('/login', methods=['POST'])
 @validate_json_content_type
-@use_args(UserSchema(only=['mail', 'password']), error_status_code=400)
+@use_args(LoginUserSchema, error_status_code=400)
 def login_user(args: dict):
     user=User.query.filter(User.mail == args['mail']).first()
     if not user:
