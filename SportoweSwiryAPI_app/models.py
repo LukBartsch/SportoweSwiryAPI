@@ -1,5 +1,6 @@
 from email.policy import default
 from importlib.metadata import requires
+from unicodedata import name
 import jwt
 
 from flask import abort, current_app
@@ -169,6 +170,7 @@ class ActivitySchemaAdd(ActivitySchema):
         if value not in available_activity_types:
             raise ValidationError(f'This type of activity ({value}) is not available in the application.')
 
+
 class Event(db.Model):
     __tableName__ = 'eventsAPI'
     id = db.Column(db.Integer, primary_key=True)
@@ -186,6 +188,14 @@ class Event(db.Model):
     # distance_set = db.relationship('DistancesTable', backref='event', lazy='dynamic')
     coefficients_list = db.relationship('CoefficientsList', backref='event', lazy='dynamic')
 
+    @staticmethod
+    def give_event_id(event_name):
+        event = Event.query.filter(Event.name == event_name).first()
+        if event:
+            event_id = event.id
+        else:
+            abort(404, description=f'Event ({event_name}) not found')
+        return event_id
 
 class Participation(db.Model):
     __tableName__ = 'participationAPI'
@@ -213,7 +223,21 @@ class EventSchema(Schema):
     password = fields.String()
     max_user_amount = fields.Integer(required=True)
 
+
+class EventStatusSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    name = fields.String(required=True)
+    status = fields.String(required=True)
+
+    @validates('status')
+    def validate_status_exist(self, value):
+        available_event_statuses = ['Zapisy otwarte', 'W trakcie', 'Zakończone']
+        if value not in available_event_statuses:
+            raise ValidationError(f'This status ({value}) is not available in the application.')
+
+
 user_schema = UserSchema()
 update_password_user_schema = UpdatePasswordUserSchema()
 activity_schema = ActivitySchemaAdd()
 event_schema = EventSchema()
+event_status_schema = EventStatusSchema()

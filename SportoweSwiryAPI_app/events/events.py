@@ -1,6 +1,8 @@
 from flask import jsonify, abort
+from webargs.flaskparser import use_args
+
 from SportoweSwiryAPI_app import db
-from SportoweSwiryAPI_app.models import Event, Participation, EventSchema
+from SportoweSwiryAPI_app.models import Event, Participation, EventSchema, event_status_schema
 from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type, filter_user_events
 from SportoweSwiryAPI_app.events import events_bp
 
@@ -33,6 +35,25 @@ def get_all_events(user_id: str):
     query = apply_order(Event, query)
     query = apply_filter(Event, query)
     items, pagination = get_pagination(query, 'events.get_all_events')
+    events=EventSchema(**schema_args).dump(items)
+
+    return jsonify({
+        'success': True,
+        'data': events,
+        'number_of_records': len(events),
+        'pagination': pagination
+    })
+
+
+@events_bp.route('/available_events', methods=['GET'])
+@token_required
+def get_available_events(user_id: str):
+
+    query = Event.query.filter(Event.status == "Zapisy otwarte")
+    schema_args = get_schema_args(Event)
+    query = apply_order(Event, query)
+    query = apply_filter(Event, query)
+    items, pagination = get_pagination(query, 'events.get_available_events')
     events=EventSchema(**schema_args).dump(items)
 
     return jsonify({
@@ -86,4 +107,21 @@ def leave_event(user_id: str, event_id: int):
     return jsonify({
         'success': True,
         'data': f'You have been signed out of the event ({event.name})'
+    })
+
+@events_bp.route("/change_event_status", methods=['PUT'])
+@token_required
+@validate_json_content_type
+@use_args(event_status_schema, error_status_code=400)
+def change_event_status(user_id: str, args: dict):
+
+    event_id = Event.give_event_id(args['name'])
+    event = Event.query.get_or_404(event_id, description=f'Event with id {event_id} not found')
+
+    event.status = args['status']
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': f'The status of the event ({event.name}) has been set to: {event.status}'
     })
