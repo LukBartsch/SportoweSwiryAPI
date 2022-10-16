@@ -35,7 +35,7 @@ def get_admins():
 
 @users_bp.route('/users/<string:user_id>', methods=['GET'])
 def get_single_user(user_id: str):
-    user=User.query.get_or_404(user_id, description=f'Author with id (username): {user_id}  not found')
+    user=User.query.get_or_404(user_id, description=f'User with id (username): {user_id}  not found')
 
     return jsonify({
         'success': True,
@@ -93,7 +93,7 @@ def login_user(args: dict):
 @users_bp.route('/me', methods=['GET'])
 @token_required
 def get_current_user(user_id: str):
-    user=User.query.get_or_404(user_id, description=f'Author with id (username): {user_id}  not found')
+    user=User.query.get_or_404(user_id, description=f'User with id (username): {user_id}  not found')
 
     return jsonify({
         'success': True,
@@ -108,7 +108,7 @@ def get_current_user(user_id: str):
 @validate_json_content_type
 @use_args(update_password_user_schema, error_status_code=400)
 def update_password(user_id: str, args: dict):
-    user=User.query.get_or_404(user_id, description=f'Author with id (username): {user_id}  not found')
+    user=User.query.get_or_404(user_id, description=f'User with id (username): {user_id}  not found')
 
     if not User.verify_password(user.password, args['current_password']):
         abort(401, description=f'Invalid credentials')
@@ -131,7 +131,7 @@ def update_user_data(user_id: str, args: dict):
     if User.query.filter(User.mail == args['mail']).first():
         abort(409, description=f'User with email {args["mail"]} already exist')
 
-    user=User.query.get_or_404(user_id, description=f'Author with id (username): {user_id}  not found')
+    user=User.query.get_or_404(user_id, description=f'User with id (username): {user_id}  not found')
 
     user.name=args['name']
     user.last_name=args['last_name']

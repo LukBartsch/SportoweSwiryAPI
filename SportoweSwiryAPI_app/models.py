@@ -100,6 +100,10 @@ class UserSchema(Schema):
     is_added_by_fb = fields.Boolean(dump_defaultt=False)
 
 
+class SelectUserSchema(UserSchema):
+    id = fields.String(required=True)
+
+
 class LoginUserSchema(Schema):
     mail = fields.String(required=True, validate=validate.Length(max=50))
     password = fields.String(load_only=True, required=True, validate=validate.Length(max=500))
