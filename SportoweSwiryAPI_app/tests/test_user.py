@@ -78,6 +78,40 @@ def test_login_user(client, user):
     assert 'token' in response_data
 
 
+def test_login_user_invalid_password(client, user):
+    response = client.post('/api/v1/login',
+                            json={
+                                'mail': user['mail'],
+                                'password': 'wrong_password'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert 'mail' not in response_data
+    assert 'name' not in response_data
+    assert 'last_name' not in response_data
+    assert 'Invalid credentials' in response_data['message']
+
+
+def test_login_user_invalid_mail(client, user):
+    response = client.post('/api/v1/login',
+                            json={
+                                'mail': 'wrong_mail',
+                                'password': user['password']
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert 'mail' not in response_data
+    assert 'name' not in response_data
+    assert 'last_name' not in response_data
+    assert 'Invalid credentials' in response_data['message']
+
+
 def test_login_user_invalid_credentials(client):
     response = client.post('/api/v1/login',
                             json={
@@ -89,8 +123,11 @@ def test_login_user_invalid_credentials(client):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert 'token' not in response_data
+    assert 'mail' not in response_data
+    assert 'name' not in response_data
+    assert 'last_name' not in response_data
     assert 'Invalid credentials' in response_data['message']
-
+    
 
 @pytest.mark.parametrize(
     'data,missing_field',
