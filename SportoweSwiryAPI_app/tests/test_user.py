@@ -171,3 +171,81 @@ def test_get_current_user_missing_token(client):
     assert 'name' not in response_data
     assert 'last_name' not in response_data
     assert 'mail' not in response_data
+
+
+def test_update_password(client, user, token):
+    response = client.put('/api/v1/update/password',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            },
+                            json={
+                                'current_password': user['password'],
+                                'new_password': 'new_password'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert user['mail'] in response_data['data'].values()
+    assert user['name'] in response_data['data'].values()
+    assert user['last_name'] in response_data['data'].values()
+
+
+def test_update_password_missing_token(client, user):
+    response = client.put('/api/v1/update/password',
+                            json={
+                                'current_password': user['password'],
+                                'new_password': 'new_password'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert user['mail'] not in response_data
+    assert user['name'] not in response_data
+    assert user['last_name'] not in response_data
+
+
+def test_update_password_invalid_current_password(client, token):
+    response = client.put('/api/v1/update/password',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            },
+                            json={
+                                'current_password': 'wrong_password',
+                                'new_password': 'new_password'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert 'mail' not in response_data
+    assert 'name' not in response_data
+    assert 'last_name' not in response_data
+    assert 'Invalid credentials' in response_data['message']
+
+
+@pytest.mark.parametrize(
+    'data,missing_field',
+    [
+        ({'current_password': '12345678'}, 'new_password'),
+        ({'new_password': 'new_password'}, 'current_password')
+    ]
+)
+def test_update_password_missing_data(client, token, data, missing_field):
+    response = client.put('/api/v1/update/password',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            },
+                            json=data)
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert 'mail' not in response_data
+    assert 'name' not in response_data
+    assert 'last_name' not in response_data
+    assert missing_field in response_data['message']
+    assert 'Missing data for required field.' in response_data['message'][missing_field]
