@@ -249,3 +249,85 @@ def test_update_password_missing_data(client, token, data, missing_field):
     assert 'last_name' not in response_data
     assert missing_field in response_data['message']
     assert 'Missing data for required field.' in response_data['message'][missing_field]
+
+
+def test_update_user_data(client, token):
+    response = client.put('/api/v1/update/data',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            },
+                            json={
+                                'name': 'new_name',
+                                'last_name': 'new_last_name',
+                                'mail': 'new_mail@wp.pl'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert 'new_mail@wp.pl' in response_data['data'].values()
+    assert 'new_name' in response_data['data'].values()
+    assert 'new_last_name' in response_data['data'].values()
+
+
+def test_update_user_data_missing_token(client):
+    response = client.put('/api/v1/update/data',
+                            json={
+                                'name': 'new_name',
+                                'last_name': 'new_last_name',
+                                'mail': 'new_mail@wp.pl'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert 'new_mail@wp.pl' not in response_data
+    assert 'new_name' not in response_data
+    assert 'new_last_name' not in response_data
+
+
+def test_update_user_data_already_used_mail(client, user, token):
+    response = client.put('/api/v1/update/data',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            },
+                            json={
+                                'name': user['name'],
+                                'last_name': user['last_name'],
+                                'mail': user['mail']
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 409
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert user['mail'] not in response_data
+    assert user['name'] not in response_data
+    assert user['last_name'] not in response_data
+
+
+@pytest.mark.parametrize(
+    'data,missing_field',
+    [
+        ({'name': 'new_name', 'last_name': 'new_last_name'}, 'mail'),
+        ({'name': 'new_name', 'mail': 'new_mail@wp.pl'}, 'last_name'),
+        ({'last_name': 'new_last_name', 'mail': 'new_mail@wp.pl'}, 'name')
+    ]
+)
+def test_update_user_data_missing_data(client, user, token, data, missing_field):
+    response = client.put('/api/v1/update/data',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            },
+                            json=data)
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert 'new_mail@wp.pl' not in response_data
+    assert 'new_name' not in response_data
+    assert 'new_last_name' not in response_data
+    assert missing_field in response_data['message']
+    assert 'Missing data for required field.' in response_data['message'][missing_field]
