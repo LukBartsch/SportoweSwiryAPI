@@ -92,6 +92,25 @@ def test_login_user_invalid_credentials(client):
     assert 'Invalid credentials' in response_data['message']
 
 
+@pytest.mark.parametrize(
+    'data,missing_field',
+    [
+        ({'mail': 'test@wp.pl'}, 'password'),
+        ({'password': '12345678'}, 'mail')
+    ]
+)
+def test_login_user_missing_data(client, data, missing_field):
+    response = client.post('/api/v1/login',
+                            json=data)
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'token' not in response_data
+    assert missing_field in response_data['message']
+    assert 'Missing data for required field.' in response_data['message'][missing_field]
+
+
 def test_get_current_user(client, user, token):
     response = client.get('/api/v1/me',
                             headers={
