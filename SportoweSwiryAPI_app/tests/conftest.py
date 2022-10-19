@@ -1,6 +1,8 @@
 import pytest
+import datetime as dt
 
 from SportoweSwiryAPI_app import create_app, db
+from SportoweSwiryAPI_app.models import Activities
 
 @pytest.fixture
 def app():
@@ -38,3 +40,23 @@ def token(client, user):
         'password': user['password']
     })
     return response.get_json()['token']
+
+
+@pytest.fixture
+def sample_activity(client):
+    activity = {
+        "user_id": "user123",
+        "activity_type_id": 3,
+        "date": dt.date.today(),
+        "distance": 8,
+        "time": 1410,
+    }
+    new_activity = Activities(**activity)
+    db.session.add(new_activity)
+    db.session.commit()
+
+    query = Activities.query.filter(Activities.user_id=="user123").all()
+    
+    for a in query:
+        print(a.date)
+
