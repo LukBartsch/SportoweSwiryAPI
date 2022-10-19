@@ -2,7 +2,7 @@ import pytest
 import datetime as dt
 
 from SportoweSwiryAPI_app import create_app, db
-from SportoweSwiryAPI_app.models import Activities
+from SportoweSwiryAPI_app.models import Activities, Sport
 
 @pytest.fixture
 def app():
@@ -45,18 +45,21 @@ def token(client, user):
 @pytest.fixture
 def sample_activity(client):
     activity = {
-        "user_id": "user123",
+        "user_id": "tesTes0",
         "activity_type_id": 3,
         "date": dt.date.today(),
         "distance": 8,
         "time": 1410,
     }
-    new_activity = Activities(**activity)
-    db.session.add(new_activity)
+    sport = {
+        "id": 3,
+        "name": "Bieg",
+        "default_coefficient": 1,
+        "default_is_constant": False,
+        "category": "other"
+    }
+    sample_activity = Activities(**activity)
+    db.session.add(sample_activity)
+    sample_sport = Sport(**sport)
+    db.session.add(sample_sport)
     db.session.commit()
-
-    query = Activities.query.filter(Activities.user_id=="user123").all()
-    
-    for a in query:
-        print(a.date)
-
