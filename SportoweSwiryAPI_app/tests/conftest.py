@@ -44,13 +44,23 @@ def token(client, user):
 
 @pytest.fixture
 def sample_activity(client):
-    activity = {
-        "user_id": "tesTes0",
-        "activity_type_id": 3,
-        "date": dt.date.today(),
-        "distance": 8,
-        "time": 1410,
-    }
+    activities = [
+        {
+            "user_id": "tesTes0",
+            "activity_type_id": 3,
+            "date": dt.date.today(),
+            "distance": 8,
+            "time": 1410
+        },
+        {
+            "user_id": "tesTes0",
+            "activity_type_id": 3,
+            "date": dt.date.today(),
+            "distance": 10,
+            "time": 1750
+        }
+    ]
+
     sport = {
         "id": 3,
         "name": "Bieg",
@@ -58,8 +68,14 @@ def sample_activity(client):
         "default_is_constant": False,
         "category": "other"
     }
-    sample_activity = Activities(**activity)
-    db.session.add(sample_activity)
+    for activity in activities:
+        sample_activity = Activities(**activity)
+        db.session.add(sample_activity)
+
     sample_sport = Sport(**sport)
     db.session.add(sample_sport)
     db.session.commit()
+
+    activities = Activities.query.filter(Activities.user_id=="tesTes0").all()
+    for activity in activities:
+        print(len(activities))
