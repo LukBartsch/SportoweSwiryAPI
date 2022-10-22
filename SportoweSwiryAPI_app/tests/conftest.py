@@ -2,7 +2,7 @@ import pytest
 import datetime as dt
 
 from SportoweSwiryAPI_app import create_app, db
-from SportoweSwiryAPI_app.models import Activities, Sport
+from SportoweSwiryAPI_app.models import Activities, Sport, User
 
 @pytest.fixture
 def app():
@@ -40,6 +40,41 @@ def token(client, user):
         'password': user['password']
     })
     return response.get_json()['token']
+
+
+@pytest.fixture
+def sample_user(client):
+    users = [
+        {
+            "id": "User1",
+            "name": "User",
+            "last_name": "Admin",
+            "mail": "admin@wp.pl",
+            "password": "admin_password",
+            "is_admin": True,
+            "confirmed": True,
+            "is_added_by_google": False,
+            "is_added_by_fb": False
+
+        },
+        {
+            "id": "User2",
+            "name": "User",
+            "last_name": "Standard",
+            "mail": "standard@wp.pl",
+            "password": "standard_password",
+            "is_admin": False,
+            "confirmed": True,
+            "is_added_by_google": False,
+            "is_added_by_fb": False
+        }
+    ]
+
+    for user in users:
+        sample_user = User(**user)
+        db.session.add(sample_user)
+
+    db.session.commit()
 
 
 @pytest.fixture
