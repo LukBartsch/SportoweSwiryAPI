@@ -19,8 +19,15 @@ def get_activities(user_id: str):
     activities=ActivitySchema(**schema_args).dump(items)
 
     for activity in activities:
-        activity['time'] = str(dt.timedelta(seconds = activity['time']))
-        activity['activity_name'] = Sport.give_sport_name(activity['activity_type_id'])
+        try:
+            activity['time'] = str(dt.timedelta(seconds = activity['time']))
+        except:
+            pass
+
+        try:
+            activity['activity_name'] = Sport.give_sport_name(activity['activity_type_id'])
+        except:
+            activity['activity_name'] = "Unknown sport. Please add param 'activity_type_id' in 'fields'."
 
     return jsonify({
         'success': True,
