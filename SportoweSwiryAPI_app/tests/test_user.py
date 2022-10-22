@@ -379,3 +379,25 @@ def test_get_single_user_not_found(client, user):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert 'data' not in response_data
+
+
+def test_get_admins(client, user, sample_admin):
+    response = client.get('/api/v1/users/admins')
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert len(response_data['data']) == 1
+    assert 'tesAdm0' in response_data['data'][0].values()
+    assert 'test' in response_data['data'][0].values()
+    assert 'Admin' in response_data['data'][0].values()
+    assert 'admin@wp.pl' in response_data['data'][0].values()
+
+
+def test_get_admins_no_records(client):
+    response = client.get('/api/v1/users/admins')
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert len(response_data['data']) == 0

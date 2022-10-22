@@ -43,37 +43,21 @@ def token(client, user):
 
 
 @pytest.fixture
-def sample_user(client):
-    users = [
-        {
-            "id": "User1",
-            "name": "User",
-            "last_name": "Admin",
-            "mail": "admin@wp.pl",
-            "password": "admin_password",
-            "is_admin": True,
-            "confirmed": True,
-            "is_added_by_google": False,
-            "is_added_by_fb": False
+def sample_admin(client):
+    admin = {
+        "id": "tesAdm0",
+        "name": "test",
+        "last_name": "Admin",
+        "mail": "admin@wp.pl",
+        "password": "admin_password",
+        "is_admin": True,
+        "confirmed": True,
+        "is_added_by_google": False,
+        "is_added_by_fb": False
+    }
 
-        },
-        {
-            "id": "User2",
-            "name": "User",
-            "last_name": "Standard",
-            "mail": "standard@wp.pl",
-            "password": "standard_password",
-            "is_admin": False,
-            "confirmed": True,
-            "is_added_by_google": False,
-            "is_added_by_fb": False
-        }
-    ]
-
-    for user in users:
-        sample_user = User(**user)
-        db.session.add(sample_user)
-
+    sample_admin = User(**admin)
+    db.session.add(sample_admin)
     db.session.commit()
 
 
