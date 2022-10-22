@@ -76,6 +76,3 @@ def sample_activity(client):
     db.session.add(sample_sport)
     db.session.commit()
 
-    activities = Activities.query.filter(Activities.user_id=="tesTes0").all()
-    for activity in activities:
-        print(len(activities))
