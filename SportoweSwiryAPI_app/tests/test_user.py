@@ -362,11 +362,20 @@ def test_get_users_no_records(client):
         }
 
 
-# def test_get_single_user(client, sample_user):
-#     response = client.get('/api/v1/users/User1')
-#     response_data = response.get_json()
-#     assert response.status_code == 200
-#     assert response.headers['Content-Type'] == 'application/json'
-#     assert response_data['success'] is True
-#     assert response_data['data']['name'] == 'User'
-#     assert response_data['data']['last_name'] == 'Admin'
+def test_get_single_user(client, user):
+    response = client.get('/api/v1/users/tesTes0')
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['data']['name'] == 'test'
+    assert response_data['data']['last_name'] == 'Test'
+
+
+def test_get_single_user_not_found(client, user):
+    response = client.get('/api/v1/users/wrong_user_id')
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
