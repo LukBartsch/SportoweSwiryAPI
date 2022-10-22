@@ -137,11 +137,11 @@ def delete_activity(user_id: int, activity_id: int):
 @activities_bp.route('/user_activities', methods=['POST'])
 @token_required
 @validate_json_content_type
-@use_args(SelectUserSchema(only=['id', 'name', 'last_name']), error_status_code=400)
+@use_args(SelectUserSchema(only=['id']), error_status_code=400)
 def get_user_activities(user_id: str, args: dict):
 
     selected_user_id = args['id']
-    user=User.query.get_or_404(selected_user_id, description=f'User with id (username): {selected_user_id}  not found')
+    user=User.query.get_or_404(selected_user_id, description=f'User with id (username): {selected_user_id} not found')
 
     query = Activities.query.filter(Activities.user_id==selected_user_id)
     schema_args = get_schema_args(Activities)
@@ -159,7 +159,7 @@ def get_user_activities(user_id: str, args: dict):
             activity['activity_name'] = Sport.give_sport_name(activity['activity_type_id'])
         except:
             activity['activity_name'] = "Unknown sport. Please add param 'activity_type_id' in 'fields'."
-            
+
 
     return jsonify({
         'success': True,

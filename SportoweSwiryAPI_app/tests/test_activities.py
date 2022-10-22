@@ -468,3 +468,98 @@ def test_delete_activity_not_found(client, token, sample_activity):
     assert response_data['success'] is False
     assert 'data' not in response_data
     assert response_data['message'] == 'Activity with id 99 not found'
+
+
+def test_get_user_activities(client, token, sample_activity):
+    response = client.post('/api/v1/user_activities',
+                            json={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['number_of_records'] == 2
+    assert len(response_data['data']) == 2
+    assert response_data['pagination'] == {
+            'total_pages': 1,
+            'total_records': 2,
+            'current_page': '/api/v1/user_activities?page=1',
+            'current_page (number)': 1
+        }
+
+
+def test_get_user_activities_missing_token(client, token, sample_activity):
+    response = client.post('/api/v1/user_activities',
+                            json={
+                                'id': 'tesTes0'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Missing token. Please login to get new token'
+
+
+def test_get_user_activities_invalid_content_type(client, token, sample_activity):
+    response = client.post('/api/v1/user_activities',
+                            data={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 415
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Content type must be application/json'
+
+
+def test_get_user_activities_not_found(client, token, sample_activity):
+    response = client.post('/api/v1/user_activities',
+                            json={
+                                'id': 'wrong_id'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+    assert response_data['message'] == 'User with id (username): wrong_id not found'
+
+
+def test_get_user_activities_missing_id(client, token, sample_activity):
+    response = client.post('/api/v1/user_activities',
+                            json={},
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'id' in response_data['message']
+    assert 'Missing data for required field.' in response_data['message']['id']
+
+
+def test_get_user_activities_invalid_id(client, token, sample_activity):
+    response = client.post('/api/v1/user_activities',
+                            json={
+                                'id': 123
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message']['id'] == ['Not a valid string.']
+
