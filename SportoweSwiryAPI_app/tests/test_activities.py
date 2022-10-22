@@ -41,6 +41,16 @@ def test_get_activities(client, token, sample_activity):
         }
 
 
+def test_get_activities_missing_token(client, token, sample_activity):
+    response = client.get('/api/v1/activities')
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'number_of_records' not in response_data
+    assert 'pagination' not in response_data
+
+
 def test_get_activities_with_params(client, token, sample_activity):
     response = client.get('/api/v1/activities?fields=activity_type_id,activity_name,distance&sort=time&page=2&limit=1',
                             headers={
