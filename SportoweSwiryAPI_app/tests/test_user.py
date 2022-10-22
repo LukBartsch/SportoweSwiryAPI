@@ -48,6 +48,7 @@ def test_create_user_invalid_content_type(client):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert 'token' not in response_data
+    assert response_data['message'] == 'Content type must be application/json'
 
 
 def test_create_user_already_used_mail(client, user):
@@ -171,6 +172,7 @@ def test_get_current_user_missing_token(client):
     assert 'name' not in response_data
     assert 'last_name' not in response_data
     assert 'mail' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
 def test_update_password(client, user, token):
@@ -204,6 +206,7 @@ def test_update_password_missing_token(client, user):
     assert user['mail'] not in response_data
     assert user['name'] not in response_data
     assert user['last_name'] not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
 def test_update_password_invalid_current_password(client, token):
@@ -285,6 +288,7 @@ def test_update_user_data_missing_token(client):
     assert 'new_mail@wp.pl' not in response_data
     assert 'new_name' not in response_data
     assert 'new_last_name' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
 def test_update_user_data_already_used_mail(client, user, token):
