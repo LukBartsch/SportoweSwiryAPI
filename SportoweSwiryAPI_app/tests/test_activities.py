@@ -434,3 +434,37 @@ def test_update_activity_invalid_distance(client, token, sample_activity):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert response_data['message']['distance'] == ['Not a valid number.']
+
+
+def test_delete_activity(client, token, sample_activity):
+    response = client.delete('/api/v1/activities/1',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['data'] == 'Activity with id 1 has been deleted'
+
+
+def test_delete_activity_missing_token(client, token, sample_activity):
+    response = client.delete('/api/v1/activities/1')
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Missing token. Please login to get new token'
+
+
+def test_delete_activity_not_found(client, token, sample_activity):
+    response = client.delete('/api/v1/activities/99',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+    assert response_data['message'] == 'Activity with id 99 not found'
