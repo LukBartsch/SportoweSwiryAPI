@@ -1,3 +1,4 @@
+import pytest
 import datetime as dt
 
 def test_get_my_events(client, token, sample_event):
@@ -348,4 +349,104 @@ def test_leave_event_current_unavailable(client, token, sample_event):
 
 
 # def test_leave_event_not_participating(client, token, sample_event):
+
+
+
+def test_change_event_status(client, token, sample_event):
+    response = client.put('/api/v1/change_event_status',
+                            json={
+                                'name': 'Event_Test2',
+                                'status': 'Zapisy otwarte'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['data'] == 'The status of the event (Event_Test2) has been set to: Zapisy otwarte'
+
+
+def test_change_event_status_not_found(client, token, sample_event):
+    response = client.put('/api/v1/change_event_status',
+                            json={
+                                'name': 'Wrong_name',
+                                'status': 'Zapisy otwarte'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Event (Wrong_name) not found'
+
+
+def test_change_event_status_invalid_new_status(client, token, sample_event):
+    response = client.put('/api/v1/change_event_status',
+                            json={
+                                'name': 'Event_Test2',
+                                'status': 'Wrong_status'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message']['status'] == ['This status (Wrong_status) is not available in the application.']
+
+
+def test_change_event_status_missing_token(client, token, sample_event):
+    response = client.put('/api/v1/change_event_status',
+                            json={
+                                'name': 'Event_Test2',
+                                'status': 'Zapisy otwarte'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
+
+def test_change_event_status_invalid_conent_type(client, token, sample_event):
+    response = client.put('/api/v1/change_event_status',
+                            data={
+                                'name': 'Event_Test2',
+                                'status': 'Zapisy otwarte'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 415
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Content type must be application/json'
+
+
+@pytest.mark.parametrize(
+    'data,missing_field',
+    [
+        ({'name': 'Event_Test2'}, 'status'),
+        ({'status': 'Zapisy otwarte'}, 'name'),
+    ]
+)
+def test_change_event_status_missing_data(client, token, data, missing_field):
+    response = client.put('/api/v1/change_event_status',
+                            json=data,
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert missing_field in response_data['message']
+    assert 'Missing data for required field.' in response_data['message'][missing_field]
+
 
