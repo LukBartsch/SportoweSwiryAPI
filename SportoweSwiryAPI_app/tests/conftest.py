@@ -2,7 +2,7 @@ import pytest
 import datetime as dt
 
 from SportoweSwiryAPI_app import create_app, db
-from SportoweSwiryAPI_app.models import Activities, Sport, User, Event
+from SportoweSwiryAPI_app.models import Activities, Sport, User, Event, Participation
 
 @pytest.fixture
 def app():
@@ -98,20 +98,44 @@ def sample_activity(client):
 
 @pytest.fixture
 def sample_event(client):
-    event = {
-        "id": 1,
-        "name": "Event",
-        "start": dt.date.today(),
-        "length_weeks": 5,
-        "admin_id": "tesAdm0",
-        "status": "Zapisy otwarte",
-        "is_private": False,
-        "is_secret": False,
-        "password": "",
-        "max_user_amount": 10
+    events = [
+        {
+            "id": 1,
+            "name": "Event_Test1",
+            "start": dt.date.today(),
+            "length_weeks": 5,
+            "admin_id": "tesAdm0",
+            "status": "Zapisy otwarte",
+            "is_private": False,
+            "is_secret": False,
+            "password": "",
+            "max_user_amount": 10
+        },
+        {
+            "id": 2,
+            "name": "Event_Test2",
+            "start": dt.date.today(),
+            "length_weeks": 10,
+            "admin_id": "tesAdm0",
+            "status": "W trakcie",
+            "is_private": False,
+            "is_secret": False,
+            "password": "",
+            "max_user_amount": 10
+        },
+    ]
+
+    participation = {
+        "user_id": "tesTes0",
+        "event_id": 2
     }
 
-    sample_event = Event(**event)
-    db.session.add(sample_event)
+    for event in events:
+        sample_event = Event(**event)
+        db.session.add(sample_event)
+
+    sample_participation = Participation(**participation)
+    db.session.add(sample_participation)
+
     db.session.commit()
 
