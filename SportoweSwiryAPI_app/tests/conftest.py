@@ -2,7 +2,7 @@ import pytest
 import datetime as dt
 
 from SportoweSwiryAPI_app import create_app, db
-from SportoweSwiryAPI_app.models import Activities, Sport, User
+from SportoweSwiryAPI_app.models import Activities, Sport, User, Event
 
 @pytest.fixture
 def app():
@@ -93,5 +93,25 @@ def sample_activity(client):
 
     sample_sport = Sport(**sport)
     db.session.add(sample_sport)
+    db.session.commit()
+
+
+@pytest.fixture
+def sample_event(client):
+    event = {
+        "id": 1,
+        "name": "Event",
+        "start": dt.date.today(),
+        "length_weeks": 5,
+        "admin_id": "tesAdm0",
+        "status": "Zapisy otwarte",
+        "is_private": False,
+        "is_secret": False,
+        "password": "",
+        "max_user_amount": 10
+    }
+
+    sample_event = Event(**event)
+    db.session.add(sample_event)
     db.session.commit()
 
