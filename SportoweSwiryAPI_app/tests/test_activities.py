@@ -563,3 +563,32 @@ def test_get_user_activities_invalid_id(client, token, sample_activity):
     assert response_data['success'] is False
     assert response_data['message']['id'] == ['Not a valid string.']
 
+
+def test_get_user_activities_with_params(client, token, sample_activity):
+    response = client.post('/api/v1/user_activities?fields=activity_type_id,activity_name,distance&sort=time&page=2&limit=1',
+                            json={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['number_of_records'] == 1
+    assert len(response_data['data']) == 1
+    assert response_data['pagination'] == {
+            'total_pages': 2,
+            'total_records': 2,
+            'current_page': '/api/v1/user_activities?page=2&fields=activity_type_id,activity_name,distance&sort=time&limit=1',
+            'current_page (number)': 2,
+            'previous_page': '/api/v1/user_activities?page=1&fields=activity_type_id,activity_name,distance&sort=time&limit=1'
+        }
+    assert response_data['data'] == [
+        {
+            'activity_name': 'Bieg',
+            'activity_type_id': 3,
+            'distance': '10.0'
+        }
+    ]
