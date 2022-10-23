@@ -299,3 +299,53 @@ def test_join_event_already_signed_up(client, token, sample_event):
     assert response_data['success'] is False
     assert response_data['message'] == 'You are already signed up for this event (Event_Test1).'
 
+
+def test_leave_event(client, token, sample_event):
+    test_join_event(client, token, sample_event)
+    response = client.get('/api/v1/leave_event/1',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['data'] == 'You have been signed out of the event (Event_Test1)'
+
+
+def test_leave_event_not_found(client, token, sample_event):
+    response = client.get('/api/v1/leave_event/99',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Event with id 99 not found'
+
+
+def test_leave_event_missing_token(client, token, sample_event):
+    response = client.get('/api/v1/leave_event/1')
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
+
+
+def test_leave_event_current_unavailable(client, token, sample_event):
+    response = client.get('/api/v1/leave_event/2',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 403
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'It is no longer possible to leave an event (Event_Test2) at this time.'
+
+
+# def test_leave_event_not_participating(client, token, sample_event):
+
