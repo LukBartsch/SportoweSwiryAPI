@@ -129,11 +129,11 @@ def change_event_status(user_id: str, args: dict):
 @events_bp.route('/events', methods=['POST'])
 @token_required
 @validate_json_content_type
-@use_args(SelectUserSchema(only=['id', 'name', 'last_name']), error_status_code=400)
+@use_args(SelectUserSchema(only=['id']), error_status_code=400)
 def get_user_events(user_id: str, args: dict):
 
     selected_user_id = args['id']
-    user=User.query.get_or_404(selected_user_id, description=f'User with id (username): {selected_user_id}  not found')
+    user=User.query.get_or_404(selected_user_id, description=f'User with id (username): {selected_user_id} not found')
 
     query = User.all_events(selected_user_id)
     schema_args = get_schema_args(Event)

@@ -460,3 +460,149 @@ def test_change_event_status_missing_data(client, token, data, missing_field):
     assert 'Missing data for required field.' in response_data['message'][missing_field]
 
 
+def test_get_user_events(client, token, sample_event):
+    response = client.post('/api/v1/events',
+                            json={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['number_of_records'] == 1
+    assert len(response_data['data']) == 1
+    assert response_data['pagination'] == {
+            'total_pages': 1,
+            'total_records': 1,
+            'current_page': '/api/v1/events?page=1',
+            'current_page (number)': 1
+        }
+
+
+def test_get_user_events_missing_token(client, token, sample_event):
+    response = client.post('/api/v1/events',
+                            json={
+                                'id': 'tesTes0'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Missing token. Please login to get new token'
+
+
+def test_get_user_events_invalid_content_type(client, token, sample_event):
+    response = client.post('/api/v1/events',
+                            data={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 415
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Content type must be application/json'
+
+
+def test_get_user_events_missing_id(client, token, sample_event):
+    response = client.post('/api/v1/events',
+                            json={},
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'id' in response_data['message']
+    assert 'Missing data for required field.' in response_data['message']['id']
+
+
+def test_get_user_events_invalid_id(client, token, sample_event):
+    response = client.post('/api/v1/events',
+                            json={
+                                'id': 123
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message']['id'] == ['Not a valid string.']
+
+
+def test_get_user_events_not_found(client, token, sample_event):
+    response = client.post('/api/v1/events',
+                            json={
+                                'id': 'Wrong_id'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'User with id (username): Wrong_id not found'
+
+
+def test_get_user_events_no_records(client, token):
+    response = client.post('/api/v1/events',
+                            json={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    expected_result = {
+        'success': True,
+        'data': [],
+        'number_of_records': 0,
+        'pagination': {
+            'total_pages': 0,
+            'total_records': 0,
+            'current_page': '/api/v1/events?page=1',
+            'current_page (number)': 1
+        }
+    }
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response.get_json() == expected_result
+
+
+def test_get_user_events_with_params(client, token, sample_event):
+    response = client.post('/api/v1/events?fields=name,start,length_weeks,admin_id&sort=name&page=1&limit=1',
+                            json={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['number_of_records'] == 1
+    assert len(response_data['data']) == 1
+    assert response_data['pagination'] == {
+            'total_pages': 1,
+            'total_records': 1,
+            'current_page': '/api/v1/events?page=1&fields=name,start,length_weeks,admin_id&sort=name&limit=1',
+            'current_page (number)': 1
+        }
+    assert response_data['data'] == [
+        {
+            'admin_id': 'tesAdm0',
+            'length_weeks': 10,
+            'name': 'Event_Test2',
+            'start': str(dt.date.today().strftime("%d-%m-%Y"))   
+        }
+    ]
+
