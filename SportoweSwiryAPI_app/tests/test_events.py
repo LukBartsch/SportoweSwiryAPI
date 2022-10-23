@@ -348,7 +348,17 @@ def test_leave_event_current_unavailable(client, token, sample_event):
     assert response_data['message'] == 'It is no longer possible to leave an event (Event_Test2) at this time.'
 
 
-# def test_leave_event_not_participating(client, token, sample_event):
+def test_leave_event_not_participating(client, token, sample_event):
+    test_leave_event(client, token, sample_event)
+    response = client.get('/api/v1/leave_event/1',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 409
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'You are not participating in this event (Event_Test1).'
 
 
 
