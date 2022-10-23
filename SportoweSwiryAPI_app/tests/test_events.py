@@ -48,6 +48,7 @@ def test_get_my_events_missing_token(client, token, sample_event):
     assert response_data['success'] is False
     assert 'number_of_records' not in response_data
     assert 'pagination' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
 def test_get_my_events_with_params(client, token, sample_event):
@@ -75,18 +76,6 @@ def test_get_my_events_with_params(client, token, sample_event):
             'start': str(dt.date.today().strftime("%d-%m-%Y"))   
         }
     ]
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def test_get_all_events(client, token, sample_event):
@@ -138,6 +127,7 @@ def test_get_all_events_missing_token(client, token, sample_event):
     assert response_data['success'] is False
     assert 'number_of_records' not in response_data
     assert 'pagination' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
 def test_get_all_events_with_params(client, token, sample_event):
@@ -221,6 +211,7 @@ def test_get_available_events_missing_token(client, token, sample_event):
     assert response_data['success'] is False
     assert 'number_of_records' not in response_data
     assert 'pagination' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
 def test_get_available_events_with_params(client, token, sample_event):
@@ -248,3 +239,63 @@ def test_get_available_events_with_params(client, token, sample_event):
             'start': str(dt.date.today().strftime("%d-%m-%Y"))   
         }
     ]
+
+
+def test_join_event(client, token, sample_event):
+    response = client.get('/api/v1/join_event/1',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['data'] == 'Congratulations. You signed up for event: Event_Test1'
+
+
+def test_join_event_not_found(client, token, sample_event):
+    response = client.get('/api/v1/join_event/99',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Event with id 99 not found'
+
+
+def test_join_event_missing_token(client, token, sample_event):
+    response = client.get('/api/v1/join_event/1')
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+    assert response_data['message'] == 'Missing token. Please login to get new token'
+
+
+def test_join_event_current_unavailable(client, token, sample_event):
+    response = client.get('/api/v1/join_event/2',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 403
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Joining for this event (Event_Test2) is currently unavailable.'
+
+
+def test_join_event_already_signed_up(client, token, sample_event):
+    test_join_event(client, token, sample_event)
+    response = client.get('/api/v1/join_event/1',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 409
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'You are already signed up for this event (Event_Test1).'
+
