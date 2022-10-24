@@ -2,11 +2,13 @@ from flask import jsonify, abort
 from webargs.flaskparser import use_args
 from SportoweSwiryAPI_app import db
 from SportoweSwiryAPI_app.models import User, UserSchema, LoginUserSchema, user_schema, update_password_user_schema
-from SportoweSwiryAPI_app.utilities import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination, token_required
+from SportoweSwiryAPI_app.utilities import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination, token_required, checking_admin
 from SportoweSwiryAPI_app.users import users_bp
 
 @users_bp.route('/users', methods=['GET'])
-def get_users():
+@token_required
+@checking_admin
+def get_users(user_id: str):
     
     query = User.query
     schema_args = get_schema_args(User)

@@ -4,7 +4,7 @@ import datetime as dt
 
 from SportoweSwiryAPI_app import db
 from SportoweSwiryAPI_app.models import Activities, ActivitySchema, Sport, SportSchema, User, SelectUserSchema, activity_schema
-from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type
+from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type, checking_admin
 from SportoweSwiryAPI_app.activities import activities_bp
 
 @activities_bp.route('/activities', methods=['GET'])
@@ -136,6 +136,7 @@ def delete_activity(user_id: int, activity_id: int):
 
 @activities_bp.route('/user_activities', methods=['POST'])
 @token_required
+@checking_admin
 @validate_json_content_type
 @use_args(SelectUserSchema(only=['id']), error_status_code=400)
 def get_user_activities(user_id: str, args: dict):

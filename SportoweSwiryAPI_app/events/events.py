@@ -3,7 +3,7 @@ from webargs.flaskparser import use_args
 
 from SportoweSwiryAPI_app import db
 from SportoweSwiryAPI_app.models import User, SelectUserSchema, Event, Participation, EventSchema, event_status_schema
-from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type
+from SportoweSwiryAPI_app.utilities import get_schema_args, apply_order, apply_filter,get_pagination, token_required, validate_json_content_type, checking_admin
 from SportoweSwiryAPI_app.events import events_bp
 
 @events_bp.route('/events', methods=['GET'])
@@ -27,6 +27,7 @@ def get_my_events(user_id: str):
 
 @events_bp.route('/all_events', methods=['GET'])
 @token_required
+@checking_admin
 def get_all_events(user_id: str):
 
     query = Event.query
@@ -110,6 +111,7 @@ def leave_event(user_id: str, event_id: int):
 
 @events_bp.route("/change_event_status", methods=['PUT'])
 @token_required
+@checking_admin
 @validate_json_content_type
 @use_args(event_status_schema, error_status_code=400)
 def change_event_status(user_id: str, args: dict):
@@ -128,6 +130,7 @@ def change_event_status(user_id: str, args: dict):
 
 @events_bp.route('/events', methods=['POST'])
 @token_required
+@checking_admin
 @validate_json_content_type
 @use_args(SelectUserSchema(only=['id']), error_status_code=400)
 def get_user_events(user_id: str, args: dict):

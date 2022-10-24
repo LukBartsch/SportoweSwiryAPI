@@ -6,6 +6,8 @@ from typing import Tuple
 from werkzeug.exceptions import UnsupportedMediaType
 from functools import wraps
 
+from SportoweSwiryAPI_app.models import User
+
 def validate_json_content_type(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -33,6 +35,21 @@ def token_required(func):
             abort(401, description=f'Invalid. Please login or register')
         else:
             return func(payload['user_id'], *args, **kwargs)
+    return wrapper
+
+
+def checking_admin(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            user_id = args[0]
+            admin=User.query.get_or_404(user_id, description=f'User with id (username): {user_id}  not found')
+            if admin.is_admin == False:
+                abort(403, description=f'Only the administrators can access this content.')
+        except jwt.ExpiredSignatureError:
+            abort(403, description=f'Authorization error. Try again.')
+        else:
+            return func(*args, **kwargs)
     return wrapper
 
 def get_schema_args(model: DefaultMeta) -> dict:
