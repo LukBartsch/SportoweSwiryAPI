@@ -337,8 +337,11 @@ def test_update_user_data_missing_data(client, user, token, data, missing_field)
     assert 'Missing data for required field.' in response_data['message'][missing_field]
 
 
-def test_get_users(client, user):
-    response = client.get('/api/v1/users')
+def test_get_users(client, token, user_admin):
+    response = client.get('/api/v1/users',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            })
     response_data = response.get_json()
     assert response.status_code == 200
     assert response.headers['Content-Type'] == 'application/json'
@@ -351,19 +354,25 @@ def test_get_users(client, user):
             'current_page (number)': 1,
         }
 
-def test_get_users_no_records(client):
+def test_get_users_missing_token(client, token, user_admin):
     response = client.get('/api/v1/users')
     response_data = response.get_json()
-    assert response.status_code == 200
+    assert response.status_code == 401
     assert response.headers['Content-Type'] == 'application/json'
-    assert response_data['success'] is True
-    assert len(response_data['data']) == 0
-    assert response_data['pagination'] == {
-            'total_pages': 0,
-            'total_records': 0,
-            'current_page': '/api/v1/users?page=1',
-            'current_page (number)': 1,
-        }
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Missing token. Please login to get new token'
+
+
+def test_get_users_no_admin(client, token):
+    response = client.get('/api/v1/users',
+			                headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 403
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Only the administrators can access this content.'
 
 
 def test_get_single_user(client, user):

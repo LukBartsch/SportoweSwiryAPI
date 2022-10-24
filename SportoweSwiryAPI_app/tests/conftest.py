@@ -43,6 +43,20 @@ def token(client, user):
 
 
 @pytest.fixture
+def user_admin():
+    user = User.query.filter(User.id == 'tesTes0').first()
+    user.is_admin = True
+    db.session.commit()
+
+
+@pytest.fixture
+def delete_user():
+    user = User.query.filter(User.id == 'tesTes0').first()
+    db.session.delete(user)
+    db.session.commit()
+
+
+@pytest.fixture
 def sample_admin(client):
     admin = {
         "id": "tesAdm0",
