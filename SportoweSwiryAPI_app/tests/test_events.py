@@ -79,7 +79,7 @@ def test_get_my_events_with_params(client, token, sample_event):
     ]
 
 
-def test_get_all_events(client, token, sample_event):
+def test_get_all_events(client, token, sample_event, user_admin):
     response = client.get('/api/v1/all_events',
                             headers={
                                 'Authorization': f'Bearer {token}'
@@ -96,10 +96,22 @@ def test_get_all_events(client, token, sample_event):
             'current_page': '/api/v1/all_events?page=1',
             'current_page (number)': 1
         }
+
+
+def test_get_all_events_no_admin(client, token, sample_event):
+    response = client.get('/api/v1/all_events',
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 403
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Only the administrators can access this content.'
         
 
 
-def test_get_all_events_no_records(client, token):
+def test_get_all_events_no_records(client, token, user_admin):
     response = client.get('/api/v1/all_events',
                             headers={
                                 'Authorization': f'Bearer {token}'
@@ -120,7 +132,7 @@ def test_get_all_events_no_records(client, token):
     assert response.get_json() == expected_result
 
 
-def test_get_all_events_missing_token(client, token, sample_event):
+def test_get_all_events_missing_token(client, token, sample_event, user_admin):
     response = client.get('/api/v1/all_events')
     response_data = response.get_json()
     assert response.status_code == 401
@@ -131,7 +143,7 @@ def test_get_all_events_missing_token(client, token, sample_event):
     assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
-def test_get_all_events_with_params(client, token, sample_event):
+def test_get_all_events_with_params(client, token, sample_event, user_admin):
     response = client.get('/api/v1/all_events?fields=name,start,length_weeks,admin_id&sort=name&page=1&limit=2',
                             headers={
                                 'Authorization': f'Bearer {token}'
@@ -362,7 +374,7 @@ def test_leave_event_not_participating(client, token, sample_event):
 
 
 
-def test_change_event_status(client, token, sample_event):
+def test_change_event_status(client, token, sample_event, user_admin):
     response = client.put('/api/v1/change_event_status',
                             json={
                                 'name': 'Event_Test2',
@@ -378,7 +390,23 @@ def test_change_event_status(client, token, sample_event):
     assert response_data['data'] == 'The status of the event (Event_Test2) has been set to: Zapisy otwarte'
 
 
-def test_change_event_status_not_found(client, token, sample_event):
+def test_change_event_status_no_admin(client, token, sample_event):
+    response = client.put('/api/v1/change_event_status',
+                            json={
+                                'name': 'Event_Test2',
+                                'status': 'Zapisy otwarte'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 403
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Only the administrators can access this content.'
+
+
+def test_change_event_status_not_found(client, token, sample_event, user_admin):
     response = client.put('/api/v1/change_event_status',
                             json={
                                 'name': 'Wrong_name',
@@ -394,7 +422,7 @@ def test_change_event_status_not_found(client, token, sample_event):
     assert response_data['message'] == 'Event (Wrong_name) not found'
 
 
-def test_change_event_status_invalid_new_status(client, token, sample_event):
+def test_change_event_status_invalid_new_status(client, token, sample_event, user_admin):
     response = client.put('/api/v1/change_event_status',
                             json={
                                 'name': 'Event_Test2',
@@ -410,7 +438,7 @@ def test_change_event_status_invalid_new_status(client, token, sample_event):
     assert response_data['message']['status'] == ['This status (Wrong_status) is not available in the application.']
 
 
-def test_change_event_status_missing_token(client, token, sample_event):
+def test_change_event_status_missing_token(client, token, sample_event, user_admin):
     response = client.put('/api/v1/change_event_status',
                             json={
                                 'name': 'Event_Test2',
@@ -423,7 +451,7 @@ def test_change_event_status_missing_token(client, token, sample_event):
     assert 'data' not in response_data
     assert response_data['message'] == 'Missing token. Please login to get new token'
 
-def test_change_event_status_invalid_conent_type(client, token, sample_event):
+def test_change_event_status_invalid_conent_type(client, token, sample_event, user_admin):
     response = client.put('/api/v1/change_event_status',
                             data={
                                 'name': 'Event_Test2',
@@ -446,7 +474,7 @@ def test_change_event_status_invalid_conent_type(client, token, sample_event):
         ({'status': 'Zapisy otwarte'}, 'name'),
     ]
 )
-def test_change_event_status_missing_data(client, token, data, missing_field):
+def test_change_event_status_missing_data(client, token, data, missing_field, user_admin):
     response = client.put('/api/v1/change_event_status',
                             json=data,
                             headers={
@@ -460,7 +488,7 @@ def test_change_event_status_missing_data(client, token, data, missing_field):
     assert 'Missing data for required field.' in response_data['message'][missing_field]
 
 
-def test_get_user_events(client, token, sample_event):
+def test_get_user_events(client, token, sample_event, user_admin):
     response = client.post('/api/v1/events',
                             json={
                                 'id': 'tesTes0'
@@ -482,7 +510,23 @@ def test_get_user_events(client, token, sample_event):
         }
 
 
-def test_get_user_events_missing_token(client, token, sample_event):
+def test_get_user_events_no_admin(client, token, sample_event):
+    response = client.post('/api/v1/events',
+                            json={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 403
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Only the administrators can access this content.'
+
+
+
+def test_get_user_events_missing_token(client, token, sample_event, user_admin):
     response = client.post('/api/v1/events',
                             json={
                                 'id': 'tesTes0'
@@ -494,7 +538,7 @@ def test_get_user_events_missing_token(client, token, sample_event):
     assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
-def test_get_user_events_invalid_content_type(client, token, sample_event):
+def test_get_user_events_invalid_content_type(client, token, sample_event, user_admin):
     response = client.post('/api/v1/events',
                             data={
                                 'id': 'tesTes0'
@@ -509,7 +553,7 @@ def test_get_user_events_invalid_content_type(client, token, sample_event):
     assert response_data['message'] == 'Content type must be application/json'
 
 
-def test_get_user_events_missing_id(client, token, sample_event):
+def test_get_user_events_missing_id(client, token, sample_event, user_admin):
     response = client.post('/api/v1/events',
                             json={},
                             headers={
@@ -523,7 +567,7 @@ def test_get_user_events_missing_id(client, token, sample_event):
     assert 'Missing data for required field.' in response_data['message']['id']
 
 
-def test_get_user_events_invalid_id(client, token, sample_event):
+def test_get_user_events_invalid_id(client, token, sample_event, user_admin):
     response = client.post('/api/v1/events',
                             json={
                                 'id': 123
@@ -538,7 +582,7 @@ def test_get_user_events_invalid_id(client, token, sample_event):
     assert response_data['message']['id'] == ['Not a valid string.']
 
 
-def test_get_user_events_not_found(client, token, sample_event):
+def test_get_user_events_not_found(client, token, sample_event, user_admin):
     response = client.post('/api/v1/events',
                             json={
                                 'id': 'Wrong_id'
@@ -553,7 +597,7 @@ def test_get_user_events_not_found(client, token, sample_event):
     assert response_data['message'] == 'User with id (username): Wrong_id not found'
 
 
-def test_get_user_events_no_records(client, token):
+def test_get_user_events_no_records(client, token, user_admin):
     response = client.post('/api/v1/events',
                             json={
                                 'id': 'tesTes0'
@@ -577,7 +621,7 @@ def test_get_user_events_no_records(client, token):
     assert response.get_json() == expected_result
 
 
-def test_get_user_events_with_params(client, token, sample_event):
+def test_get_user_events_with_params(client, token, sample_event, user_admin):
     response = client.post('/api/v1/events?fields=name,start,length_weeks,admin_id&sort=name&page=1&limit=1',
                             json={
                                 'id': 'tesTes0'
