@@ -50,13 +50,6 @@ def user_admin():
 
 
 @pytest.fixture
-def delete_user():
-    user = User.query.filter(User.id == 'tesTes0').first()
-    db.session.delete(user)
-    db.session.commit()
-
-
-@pytest.fixture
 def sample_admin(client):
     admin = {
         "id": "tesAdm0",

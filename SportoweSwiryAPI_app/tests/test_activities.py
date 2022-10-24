@@ -470,7 +470,7 @@ def test_delete_activity_not_found(client, token, sample_activity):
     assert response_data['message'] == 'Activity with id 99 not found'
 
 
-def test_get_user_activities(client, token, sample_activity):
+def test_get_user_activities(client, token, sample_activity, user_admin):
     response = client.post('/api/v1/user_activities',
                             json={
                                 'id': 'tesTes0'
@@ -492,7 +492,7 @@ def test_get_user_activities(client, token, sample_activity):
         }
 
 
-def test_get_user_activities_missing_token(client, token, sample_activity):
+def test_get_user_activities_missing_token(client, token, sample_activity, user_admin):
     response = client.post('/api/v1/user_activities',
                             json={
                                 'id': 'tesTes0'
@@ -504,7 +504,7 @@ def test_get_user_activities_missing_token(client, token, sample_activity):
     assert response_data['message'] == 'Missing token. Please login to get new token'
 
 
-def test_get_user_activities_invalid_content_type(client, token, sample_activity):
+def test_get_user_activities_invalid_content_type(client, token, sample_activity, user_admin):
     response = client.post('/api/v1/user_activities',
                             data={
                                 'id': 'tesTes0'
@@ -519,7 +519,7 @@ def test_get_user_activities_invalid_content_type(client, token, sample_activity
     assert response_data['message'] == 'Content type must be application/json'
 
 
-def test_get_user_activities_not_found(client, token, sample_activity):
+def test_get_user_activities_not_found(client, token, sample_activity, user_admin):
     response = client.post('/api/v1/user_activities',
                             json={
                                 'id': 'wrong_id'
@@ -535,7 +535,7 @@ def test_get_user_activities_not_found(client, token, sample_activity):
     assert response_data['message'] == 'User with id (username): wrong_id not found'
 
 
-def test_get_user_activities_missing_id(client, token, sample_activity):
+def test_get_user_activities_missing_id(client, token, sample_activity, user_admin):
     response = client.post('/api/v1/user_activities',
                             json={},
                             headers={
@@ -549,7 +549,7 @@ def test_get_user_activities_missing_id(client, token, sample_activity):
     assert 'Missing data for required field.' in response_data['message']['id']
 
 
-def test_get_user_activities_invalid_id(client, token, sample_activity):
+def test_get_user_activities_invalid_id(client, token, sample_activity, user_admin):
     response = client.post('/api/v1/user_activities',
                             json={
                                 'id': 123
@@ -564,7 +564,7 @@ def test_get_user_activities_invalid_id(client, token, sample_activity):
     assert response_data['message']['id'] == ['Not a valid string.']
 
 
-def test_get_user_activities_with_params(client, token, sample_activity):
+def test_get_user_activities_with_params(client, token, sample_activity, user_admin):
     response = client.post('/api/v1/user_activities?fields=activity_type_id,activity_name,distance&sort=time&page=2&limit=1',
                             json={
                                 'id': 'tesTes0'
@@ -592,3 +592,18 @@ def test_get_user_activities_with_params(client, token, sample_activity):
             'distance': '10.0'
         }
     ]
+
+
+def test_get_user_activities_no_admin(client, token):
+    response = client.post('/api/v1/user_activities',
+                            json={
+                                'id': 'tesTes0'
+                            },
+                            headers={
+                                'Authorization': f'Bearer {token}'
+                            })
+    response_data = response.get_json()
+    assert response.status_code == 403
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert response_data['message'] == 'Only the administrators can access this content.'
