@@ -28,6 +28,8 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
+    DEBUG = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     DB_HOST = os.environ.get('DB_HOST')
     DB_USERNAME = os.environ.get('DB_USERNAME')
     DB_PASSWORD = os.environ.get('DB_PASSWORD')
