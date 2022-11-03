@@ -15,8 +15,10 @@ class Config:
     PER_PAGE=5
     JWT_EXPIRED_MINUTES = 30
 
+
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+
 
 class TestingConfig(Config):
     DB_FILE_PATH = base_dir / 'SportoweSwiryAPI_app' / 'tests'/ 'test.db'
@@ -25,8 +27,16 @@ class TestingConfig(Config):
     TESTING = True
 
 
+class ProductionConfig(Config):
+    DB_HOST = os.environ.get('DB_HOST')
+    DB_USERNAME = os.environ.get('DB_USERNAME')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD')
+    DB_NAME = os.environ.get('DB_NAME')
+    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}?charset=utf8mb4'
+
+
 config = {
     'development': DevelopmentConfig,
-    'testing': TestingConfig
+    'testing': TestingConfig,
+    'production': ProductionConfig
 }
-    
