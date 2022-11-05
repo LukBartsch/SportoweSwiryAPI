@@ -1,12 +1,5 @@
 # Sportowe Świry API
 
-REST API for online library. It supports authors of books and books resources including authentication (JWT Token).
-
-REST API aplikacji Sportowe Świry, która dostępna jest pod adresem [...]. 
-Pozwala na dostęp do wszystkich aktywności oraz wydarzeń zapisanych w bazie danych. 
-Użytkownik po zalogowaniu może również dodawać i usuwać swoje aktywności sportowe.
-Użytkownicy, którzy są administatroami mogą również wyświetlić wszystkich zarejestrowanych użytkoniwków.
-
 REST API for Sportowe Świry application, available at [sportoweswiry.com.pl].
 It allows access to all activities and events stored in the database.
 After logging in, the user can also add and remove his sports activities.
