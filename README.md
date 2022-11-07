@@ -5,7 +5,7 @@ It allows access to all activities and events stored in the database.
 After logging in, the user can also add and remove his sports activities.
 Admin users can also view all registered users, events or users's activities.
 
-The documentation can be found in `sportowe_swiry_api_documentation.html` or [here](https://documenter.getpostman.com/view/23181522/2s8YYFr3bF)
+The documentation can be found [here](https://documenter.getpostman.com/view/23181522/2s8YYFr3bF)
 
 ## Setup
 
