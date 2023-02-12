@@ -16,7 +16,7 @@ REST API for Sportowe Świry application.
 
 
 ## General Information
-The REST API application is a separate module of the Sportowe Świry application (available at [here](https://sportoweswiry.com.pl/)) that allows to access the database using the HTTP protocol. The app should use a copy of the original application database. This is a module designed to show the functionality of the API.
+The REST API application is a separate module of the Sportowe Świry application (available [here](https://sportoweswiry.com.pl/)) that allows to access the database using the HTTP protocol. The app should use a copy of the original application database. This is a module designed to show the functionality of the API.
 
 ## Technologies Used
 * Framework Python-Flask
@@ -39,12 +39,12 @@ Data is transmitted and displayed using the JSON format. Displaying a list of ac
 * Search for specific values in database columns
 * The use of pagination when displaying data
 
-Full documentation can be found [here](https://documenter.getpostman.com/view/23181522/2s8YYFr3bF)
+Full documentation can be found [here](https://documenter.getpostman.com/view/23181522/2s8YYFr3bF).
 
 ## Setup
 
 * Clone repository
-* Rename .env.example to `.env` and set your values:
+* Rename `.env.example` to `.env` and set your values:
 ```
 SECRET_KEY=SomeRandomString
 SQLALCHEMY_DATABASE_URI=mysql+pymysql://<db_user>:<db_password>@<db_host>/<db_name>
