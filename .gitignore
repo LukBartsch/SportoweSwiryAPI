@@ -1,6 +1,6 @@
 .pytest_cache/
 __pycache__/
 venv/
+SportoweSwiry-API.zip
 .env
 .env.example
-SportoweSwiry-API.zip.env
