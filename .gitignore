@@ -3,4 +3,3 @@ __pycache__/
 venv/
 SportoweSwiry-API.zip
 .env
-.env.example
